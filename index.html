@@ -1,3 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoreo de Calidad Ventas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+/* Tokens base que el tablero espera; el tema Claro de más abajo los sobrescribe dentro de .mq */
+:root{
+  --font-anthropic-sans:"Segoe UI",Arial,sans-serif;
+  --font-anthropic-serif:Georgia,"Times New Roman",serif;
+  --color-fg:#16202E;--color-fg-muted:#6B7686;--color-bg:#F3F5F8;--color-panel:#FFFFFF;
+  --color-border-line:#DFE3EA;--color-ok:#0E7C66;--color-warn:#B7791F;--color-bad:#DA291C;
+  --cds-gap-xs:6px;--cds-gap-sm:10px;--cds-gap-md:16px;--cds-gap-lg:24px;--cds-gap-xl:32px;
+  --cds-pad-xs:6px;--cds-pad-sm:10px;--cds-pad-md:16px;--cds-pad-lg:20px;--cds-pad-xl:28px;
+  --cds-radius:10px;--cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:18px;--cds-font-size-title:30px;
+  --cds-font-weight-medium:600;--cds-dur-slow:.25s;--cds-ease-out:cubic-bezier(.2,.8,.2,1);
+  --cds-chart-grid:#E9EDF3;--cds-chart-axis:#C5CCD6;--cds-chart-muted:#1D4F8C;--cds-chart-reference:#6B7686;--cds-chart-status-critical:#DA291C;
+  --cds-surface-popover:#FFFFFF;--cds-border:#DFE3EA;--cds-shadow-popover:0 6px 20px rgba(22,32,46,.14);--cds-text-secondary:#6B7686;
+  color-scheme:light;
+}
+html,body{margin:0;background:#F3F5F8;color:#16202E;font:14px/1.4 "Segoe UI",Arial,sans-serif}
+#dash-root{padding:16px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px))}
+.dash-skeleton:empty,.dash-skeleton{color:transparent;background:linear-gradient(90deg,#E9EDF3,#F3F5F8,#E9EDF3);background-size:200% 100%;border-radius:6px;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.dash-skeleton{animation:none}}
+.sa-bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:flex-end;max-width:1440px;margin:0 auto 10px;font-size:12px;color:#6B7686}
+.sa-bar button,.sa-bar label{font:inherit;cursor:pointer;background:#fff;border:1px solid #DFE3EA;border-radius:8px;padding:6px 12px;color:#16202E}
+.sa-bar button:focus-visible,.sa-bar label:focus-within{outline:3px solid rgba(218,41,28,.25)}
+.sa-bar input{position:absolute;opacity:0;width:1px;height:1px}
+.sa-err{color:#DA291C;font-weight:600}
+</style>
+<script>
+/* Configuración de la fuente: Google Sheet con acceso "cualquier persona con el enlace". */
+const SHEET_ID = '1-RRAdX_vWOeBL0slXsBTX45QErT0d4cN6m_TJUMD_ik';
+const GID = '689062604';
+const REFRESCO_MIN = 5;
+
+/* Implementación mínima de la API "dash" para que el tablero funcione fuera de Claude. */
+window.dash = (() => {
+  const store = {}, loaders = {}, calcs = {}, orden = [], subs = [];
+  let params = { asesor: 'Todos' };
+  const colors = ['#1D4F8C', '#DA291C', '#0E7C66', '#B7791F', '#6B7686', '#7A4EAB', '#2C8DB5', '#B85C38'];
+  const data = (id) => store[id] || { status: 'loading', data: [], columns: [], meta: [] };
+  const notificar = () => subs.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+  const calcular = () => {
+    for (const id of orden) {
+      const c = calcs[id];
+      const ins = c.inputs.map(data);
+      const malo = ins.find((d) => d.status !== 'ok');
+      if (malo) { store[id] = { status: malo.status, data: [], message: malo.message }; continue; }
+      try { store[id] = { status: 'ok', data: c.fn(...ins.map((d) => d.data)) }; }
+      catch (e) { console.error(id, e); store[id] = { status: 'error', data: [], message: e.message }; }
+    }
+  };
+  const aBase64 = (texto) => {
+    const bytes = new TextEncoder().encode(texto);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  };
+  const desdeTexto = (id, texto) => {
+    const r = loaders[id] ? loaders[id].fn({ answer: { content: aBase64(texto) } }) : texto;
+    store[id] = { status: 'ok', data: r.rows || r, columns: r.columns || [], meta: [] };
+    calcular(); notificar();
+  };
+  const cargar = async () => {
+    const prev = store.monitoreo;
+    if (prev && prev.status === 'ok') prev.refreshing = true; else store.monitoreo = { status: 'loading', data: [] };
+    estado('Actualizando…');
+    try {
+      const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const texto = await res.text();
+      if (/^\s*<!doctype html/i.test(texto)) throw new Error('La hoja no es pública');
+      desdeTexto('monitoreo', texto);
+      estado('Actualizado ' + new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }));
+    } catch (e) {
+      console.error(e);
+      if (!(prev && prev.status === 'ok')) { store.monitoreo = { status: 'error', data: [], message: e.message }; calcular(); notificar(); }
+      estado('No se pudo leer la hoja (' + e.message + '). Usa "Cargar CSV".', true);
+    }
+  };
+  const estado = (t, err) => { const el = document.getElementById('sa-estado'); if (el) { el.textContent = t; el.className = err ? 'sa-err' : ''; } };
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('sa-actualizar').addEventListener('click', cargar);
+    document.getElementById('sa-archivo').addEventListener('change', async (ev) => {
+      const f = ev.target.files[0]; if (!f) return;
+      try { desdeTexto('monitoreo', await f.text()); estado('Datos cargados desde ' + f.name); }
+      catch (e) { estado('El archivo no se pudo leer: ' + e.message, true); }
+      ev.target.value = '';
+    });
+    cargar();
+    setInterval(cargar, REFRESCO_MIN * 60 * 1000);
+    let w = window.innerWidth;
+    window.addEventListener('resize', () => { if (window.innerWidth !== w) { w = window.innerWidth; notificar(); } });
+  });
+  return {
+    colors,
+    data,
+    loader: (id, def) => { loaders[id] = def; },
+    calc: (id, def) => { calcs[id] = def; orden.push(id); },
+    onData: (fn) => { subs.push(fn); try { fn(); } catch (e) { console.error(e); } },
+    params: () => ({ ...params }),
+    setParams: (p) => { params = { ...params, ...p }; notificar(); },
+    resetParams: () => { params = { asesor: 'Todos' }; notificar(); },
+    refresh: () => cargar(),
+    setLink: () => {},
+  };
+})();
+</script>
+</head>
+<body>
+<div id="dash-root">
+<div class="sa-bar">
+  <span id="sa-estado" aria-live="polite">Cargando…</span>
+  <button id="sa-actualizar" type="button">Actualizar</button>
+  <label>Cargar CSV<input id="sa-archivo" type="file" accept=".csv,text/csv"></label>
+</div>
 <style>
 .mq{display:flex;flex-direction:column;gap:var(--cds-gap-lg);font-family:var(--font-anthropic-sans);color:var(--color-fg)}
 .mq-head{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);align-items:flex-end;justify-content:space-between}
@@ -608,3 +728,7 @@ dash.calc('calidad_base', {
   dash.onData(draw);
 })();
 </script>
+
+</div>
+</body>
+</html>
