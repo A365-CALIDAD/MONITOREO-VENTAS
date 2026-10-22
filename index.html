@@ -1,82 +1,610 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#17223A">
-  <title>Monitoreo de calidad | Claro Ecuador</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <style>
-    :root{--red:#DA291C;--navy:#17223A;--ink:#1F2937;--muted:#667085;--bg:#F5F7FA;--line:#E5E7EB;--ok:#00856A;--warn:#B54708;--card:#fff}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Arial,"Helvetica Neue",sans-serif}
-    .wrap{max-width:1440px;margin:auto;padding:28px}.hero{background:var(--navy);border-radius:16px;padding:30px 38px;display:flex;gap:28px;justify-content:space-between;align-items:end;box-shadow:0 10px 24px #17223a24}.eyebrow{margin:0 0 8px;color:#fff;font-size:11px;letter-spacing:1.6px;font-weight:700}.hero h1{margin:0;color:#fff;font-size:32px;letter-spacing:-.5px}.hero p{margin:9px 0 0;color:#D9DFE9;max-width:700px;font-size:15px}.filter label{display:block;margin-bottom:5px;color:#fff;font-size:12px;font-weight:700}.filter select{min-width:240px;padding:11px 12px;border:0;border-radius:9px;background:#fff;color:var(--ink);font:inherit}
-    .status{margin:14px 0 0;color:var(--muted);font-size:12px}.status.error{color:var(--red);font-weight:700}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:34px 0}.kpi,.card{background:var(--card);border-radius:12px;box-shadow:0 2px 12px #17223a14;position:relative;overflow:hidden}.kpi:before,.card:before{content:"";height:4px;background:var(--red);position:absolute;left:0;right:0;top:0}.kpi{padding:22px}.kpi span{display:block;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.35px;text-transform:uppercase}.kpi b{display:block;margin:13px 0 8px;color:var(--navy);font-size:31px}.kpi small{color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}.card{padding:25px}.card h2{margin:0;color:var(--navy);font-size:20px}.card p{margin:5px 0 20px;color:var(--muted);font-size:13px}.chart{height:280px}.criteria{display:grid;gap:14px;min-height:280px}.criterion{display:grid;grid-template-columns:minmax(120px,1fr) 54px;gap:4px 12px;align-items:center;font-size:13px}.criterion span:last-child{text-align:right;font-weight:700}.track{grid-column:1/-1;height:9px;background:#EDF0F4;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--ok);border-radius:999px}.fill.bad{background:var(--red)}.wide{margin-bottom:18px}.table-wrap{overflow:auto;max-height:480px;border:1px solid var(--line);border-radius:10px}.search{margin:0 0 15px;width:min(360px,100%);padding:10px 12px;border:1px solid #D0D5DD;border-radius:8px;font:inherit}.search:focus,.filter select:focus{outline:3px solid #da291c30}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{background:#F8F9FB;color:#475467;font-size:11px;letter-spacing:.35px;text-transform:uppercase;position:sticky;top:0}td.num,th.num{text-align:right}.pill{display:inline-block;border-radius:99px;padding:3px 8px;font-size:11px;font-weight:700}.yes{background:#DDF1EE;color:#007059}.no{background:#FDE7E5;color:#B42318}.na{background:#EEF1F5;color:#667085}.empty{padding:32px;text-align:center;color:var(--muted)}footer{padding:5px 0 26px;color:var(--muted);font-size:12px}
-    @media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}}@media(max-width:620px){.wrap{padding:14px}.hero{padding:24px 20px}.hero h1{font-size:26px}.filter,.filter select{width:100%}.kpis{grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.kpi{padding:16px}.kpi b{font-size:26px}.card{padding:20px}.chart{height:250px}}
-  </style>
-  <style id="tema-claro-a365">
-    :root{--cx-red:#DA291C;--cx-navy:#1D4F8C;--cx-ink:#16202E;--cx-muted:#6B7686;--cx-line:#DFE3EA;--cx-bg:#F3F5F8;--cx-soft:#F7F8FA;--cx-shadow:0 1px 2px rgba(22,32,46,.05),0 2px 10px rgba(22,32,46,.04);--cx-ok:#0E7C66}
-    body{background:var(--cx-bg);color:var(--cx-ink);font-family:"Barlow","Segoe UI",Arial,sans-serif}
-    .cx-head{background:#fff}.cx-in{max-width:1320px;margin:0 auto;padding:16px 20px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center}.cx-logo{font:700 31px/1 "Barlow Condensed",sans-serif;letter-spacing:-1px;color:var(--cx-red);border:3px solid var(--cx-red);border-radius:50%;height:58px;width:58px;display:grid;place-items:center}.cx-logo small{font:700 9px "Barlow",sans-serif;letter-spacing:.08em;position:absolute;margin-top:42px}.a365{font:700 23px/1 "Barlow Condensed",sans-serif;color:var(--cx-navy);border-left:1px solid var(--cx-line);padding-left:20px}.cx-title{min-width:0;padding-left:22px;border-left:1px solid var(--cx-line)}.cx-eyebrow{font-size:11.5px;letter-spacing:.14em;font-weight:600;text-transform:uppercase;color:var(--cx-red);margin:0 0 5px}.cx-title h1{font:700 clamp(25px,3vw,34px)/1.05 "Barlow Condensed",sans-serif;margin:0;color:var(--cx-ink)}.cx-title p{margin:5px 0 0;color:var(--cx-muted);font-size:14px}.cx-rule{height:4px;background:linear-gradient(90deg,var(--cx-red) 0 84%,#fff 84% 84.3%,var(--cx-navy) 84.3%)}
-    .wrap{max-width:1320px;padding:0 20px}.hero{background:#fff;border:1px solid var(--cx-line);border-radius:0 0 8px 8px;box-shadow:var(--cx-shadow);padding:14px 16px;align-items:center}.hero-copy strong{font:600 17px "Barlow Condensed",sans-serif;color:var(--cx-ink)}.hero p{margin:2px 0 0;color:var(--cx-muted);font-size:13px}.filter label{color:var(--cx-muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}.filter select{background:#fff;border:1px solid var(--cx-line);border-radius:6px;padding:7px 9px;min-width:220px}.status{margin:10px 0 0;color:var(--cx-muted)}
-    .kpis{gap:0;margin:18px 0;border:1px solid var(--cx-line);border-radius:8px;box-shadow:var(--cx-shadow);background:#fff}.kpi{border-radius:0;box-shadow:none;padding:13px 14px;border-left:1px solid var(--cx-line)}.kpi:first-child{border-left:0}.kpi:before{display:none}.kpi span{font-size:12px;letter-spacing:0;text-transform:none;font-weight:500}.kpi b{font:600 34px/1.1 "Barlow Condensed",sans-serif;color:var(--cx-ink);margin:4px 0}.kpi small{font-size:12px}.grid{gap:14px;margin-bottom:14px}.card{border:1px solid var(--cx-line);border-radius:8px;box-shadow:var(--cx-shadow);padding:16px}.card:before{display:none}.card h2{font:600 23px/1.1 "Barlow Condensed",sans-serif;color:var(--cx-ink)}.card h2:before{content:"";display:inline-block;background:var(--cx-red);width:4px;height:.78em;margin-right:10px;vertical-align:-.04em;border-radius:1px}.card p{font-size:14px;margin:4px 0 14px}.table-wrap{border-color:var(--cx-line);border-radius:8px}th{background:var(--cx-soft);color:#4A5568;font-size:11.5px;font-weight:600;letter-spacing:.04em}td{border-color:var(--cx-line)}.criteria{min-height:280px}.criterion{font-size:14px}.fill{background:var(--cx-ok)}.search{background:#fff;border-color:var(--cx-line);border-radius:6px}.pill{font-weight:600}.yes{background:#DCF1EC;color:#0E7C66}.no{background:#FCE9E7;color:var(--cx-red)}
-    .cx-foot{margin-top:32px;background:#fff;border-top:1px solid var(--cx-line)}.cx-fin{max-width:1320px;margin:auto;padding:14px 20px;display:flex;gap:18px;align-items:center;color:var(--cx-muted);font-size:12px}.cx-fin b{color:var(--cx-ink)}.cx-fin .right{margin-left:auto}.cx-seg{display:inline-flex;gap:3px;vertical-align:middle}.cx-seg i{display:block;width:22px;height:4px;background:var(--cx-red)}.cx-seg i:nth-child(2){width:12px}.cx-seg i:nth-child(3){width:6px;background:var(--cx-navy)}
-    @media(max-width:1000px){.cx-in{grid-template-columns:auto 1fr}.a365{display:none}.kpis{grid-template-columns:repeat(3,1fr)}.kpi:nth-child(4){border-left:0;border-top:1px solid var(--cx-line)}.kpi:nth-child(5){border-top:1px solid var(--cx-line)}}@media(max-width:620px){.cx-in{padding:12px 16px;gap:10px}.cx-title{grid-column:1/-1;grid-row:2;border-left:0;padding-left:0}.cx-logo{height:45px;width:45px;font-size:24px}.wrap{padding:0 14px}.hero{padding:14px;gap:12px}.kpis{grid-template-columns:1fr 1fr}.kpi{border-left:0;border-top:1px solid var(--cx-line)}.kpi:nth-child(-n+2){border-top:0}.kpi:nth-child(even){border-left:1px solid var(--cx-line)}.cx-fin{padding:14px}.cx-fin .right{margin-left:0}}
-  </style>
-</head>
-<body>
-  <header class="cx-head"><div class="cx-in"><div class="cx-logo">claro<small>ECUADOR</small></div><div class="cx-title"><div class="cx-eyebrow">A365 · Gestión de calidad</div><h1>Monitoreo de calidad · Ventas</h1><p>Validación de ventas y seguimiento de cumplimiento comercial.</p></div><div class="a365">A365</div></div><div class="cx-rule"></div></header>
-  <main class="wrap">
-    <section class="hero">
-      <div class="hero-copy"><strong>Resumen ejecutivo</strong><p id="summary">Cargando las evaluaciones de venta disponibles.</p></div>
-      <div class="filter"><label for="advisor">Asesor</label><select id="advisor"><option value="">Todos los asesores</option></select></div>
-    </section>
-    <div class="status" id="status" role="status">Conectando con la fuente de validación…</div>
-    <section class="kpis">
-      <article class="kpi"><span>Llamadas monitoreadas</span><b id="kCalls">—</b><small>Evaluaciones únicas</small></article>
-      <article class="kpi"><span>Venta válida / correcta</span><b id="kValid">—</b><small id="kValidSub">Meta referencial: 90%</small></article>
-      <article class="kpi"><span>Con error crítico</span><b id="kCritical">—</b><small id="kCriticalSub">— llamadas identificadas</small></article>
-      <article class="kpi"><span>TMO promedio</span><b id="kTmo">—</b><small>Minutos : segundos</small></article>
-      <article class="kpi"><span>Última llamada monitoreada</span><b id="kLatest">—</b><small>Fecha de gestión</small></article>
-    </section>
-    <section class="grid">
-      <article class="card"><h2>Llamadas monitoreadas por día</h2><p>Distribución por fecha de llamada y resultado de la validación.</p><div class="chart"><canvas id="trend"></canvas></div></article>
-      <article class="card"><h2>Cumplimiento por criterio</h2><p>Porcentaje de “Sí” sobre las llamadas donde aplica el criterio.</p><div class="criteria" id="criteria"></div></article>
-    </section>
-    <section class="grid">
-      <article class="card"><h2>Ranking por asesor</h2><p>Resultado de calidad por asesor según el filtro actual.</p><div class="table-wrap"><table><thead><tr><th>Asesor</th><th class="num">Llamadas</th><th class="num">% válida</th><th class="num">Errores críticos</th><th class="num">TMO</th></tr></thead><tbody id="rank"></tbody></table></div></article>
-      <article class="card"><h2>Resultado por producto</h2><p>Monitoreos y venta válida por producto ofrecido.</p><div class="table-wrap"><table><thead><tr><th>Producto</th><th class="num">Llamadas</th><th class="num">Válidas</th><th class="num">% válida</th></tr></thead><tbody id="products"></tbody></table></div></article>
-    </section>
-    <section class="card wide"><h2>Detalle de llamadas evaluadas</h2><p>La visualización no muestra teléfonos. Busca por asesor, producto, plan u observación.</p><input class="search" id="search" type="search" placeholder="Buscar…" aria-label="Buscar en el detalle"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Asesor</th><th>Producto / plan</th><th class="num">TMO</th><th>Venta válida</th><th>Error crítico</th><th>Observaciones</th></tr></thead><tbody id="detail"></tbody></table></div></section>
-  </main>
-  <footer class="cx-foot"><div class="cx-fin"><span><b>Fuente:</b> hoja de validación de ventas · Actualización automática al recargar.</span><span class="right">Claro Ecuador · A365 <span class="cx-seg"><i></i><i></i><i></i></span></span></div></footer>
-  <script>
-    const SHEET_ID='1-RRAdX_vWOeBL0slXsBTX45QErT0d4cN6m_TJUMD_ik', GID='689062604';
-    const DATA_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
-    const $=s=>document.querySelector(s); let all=[], chart;
-    const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    function csv(text){let rows=[],row=[],cell='',q=false;for(let i=0;i<text.length;i++){let c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=c}else if(c==='"')q=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}return rows}
-    function norm(s){return String(s||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
-    function isYes(s){return norm(s)==='SI'} function isNo(s){return norm(s)==='NO'} function applicable(s){return !/^(NO APLICA|N\/A|NA|)$/.test(norm(s))}
-    function date(s){let m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return new Date(+m[3],+m[1]-1,+m[2]);m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null}
-    function dayKey(s){const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:String(s||'')}
-    function shownDate(s){const d=date(s);return d?d.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}):esc(s||'—')}
-    function tmo(s){let p=String(s||'').split(':').map(Number).filter(n=>!isNaN(n));if(p.length===3)return p[0]>0?p[0]*60+p[1]:p[0]*60+p[1];if(p.length===2)return p[0]*60+p[1];return null}
-    function tmof(n){if(n==null)return '—';return `${Math.floor(n/60)}:${String(Math.round(n%60)).padStart(2,'0')}`}
-    function pct(a,b){return b?Math.round(a/b*100):null} function val(p){return p==null?'—':p+'%'}
-    function rows(){let a=$('#advisor').value;return a?all.filter(r=>r.asesor===a):all}
-    function group(rs,key){return rs.reduce((m,r)=>{let k=r[key]||'Sin especificar';(m[k]??=[]).push(r);return m},{})}
-    function render(){let rs=rows(), valid=rs.filter(r=>isYes(r.valida)), crit=rs.filter(r=>isYes(r.critico)), times=rs.map(r=>tmo(r.tmo)).filter(n=>n!=null), dates=rs.map(r=>date(r.fecha)).filter(Boolean).sort((a,b)=>b-a);
-      $('#kCalls').textContent=rs.length;$('#kValid').textContent=val(pct(valid.length,rs.length));$('#kValidSub').textContent=`${valid.length} ventas válidas · meta 90%`;$('#kCritical').textContent=val(pct(crit.length,rs.length));$('#kCriticalSub').textContent=`${crit.length} llamadas identificadas`;$('#kTmo').textContent=tmof(times.reduce((a,b)=>a+b,0)/(times.length||1));$('#kLatest').textContent=dates[0]?dates[0].toLocaleDateString('es-EC',{day:'2-digit',month:'short'}):'—';
-      $('#summary').textContent=rs.length?`Venta válida en ${val(pct(valid.length,rs.length))} de las ${rs.length} llamadas monitoreadas.${crit.length?` Se identificaron ${crit.length} llamadas con error crítico.`:''}`:'No hay evaluaciones para el filtro seleccionado.';
-      const criteria=[['Información de producto','info'],['Solicitud de datos','datos'],['Contrato','contrato'],['Facturación','facturacion'],['Costos de envío','costos'],['Permanencia','permin']];$('#criteria').innerHTML=criteria.map(([label,key])=>{let app=rs.filter(r=>applicable(r[key])),yes=app.filter(r=>isYes(r[key])),p=pct(yes.length,app.length);return `<div class="criterion"><span>${label}</span><span>${val(p)}</span><div class="track"><div class="fill ${p!=null&&p<85?'bad':''}" style="width:${p||0}%"></div></div></div>`}).join('')||'<div class="empty">Sin criterios disponibles.</div>';
-      const labels=Object.keys(group(rs,'fecha')).sort((a,b)=>(date(a)||0)-(date(b)||0)), good=labels.map(d=>rs.filter(r=>r.fecha===d&&isYes(r.valida)).length), bad=labels.map(d=>rs.filter(r=>r.fecha===d&&!isYes(r.valida)).length);if(chart)chart.destroy();chart=new Chart($('#trend'),{type:'bar',data:{labels:labels.map(d=>date(d)?.toLocaleDateString('es-EC',{day:'2-digit',month:'short'})||d),datasets:[{label:'Venta válida',data:good,backgroundColor:'#00856A',borderRadius:4},{label:'No válida',data:bad,backgroundColor:'#DA291C',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}},plugins:{legend:{position:'bottom'}}}});
-      const ranking=Object.entries(group(rs,'asesor')).map(([k,v])=>({k,n:v.length,p:pct(v.filter(r=>isYes(r.valida)).length,v.length),c:v.filter(r=>isYes(r.critico)).length,t:v.map(r=>tmo(r.tmo)).filter(x=>x!=null)})).sort((a,b)=>(b.p??-1)-(a.p??-1));$('#rank').innerHTML=ranking.map(x=>`<tr><td>${esc(x.k)}</td><td class="num">${x.n}</td><td class="num">${val(x.p)}</td><td class="num">${x.c}</td><td class="num">${tmof(x.t.reduce((a,b)=>a+b,0)/(x.t.length||1))}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin datos</td></tr>';
-      const products=Object.entries(group(rs,'producto')).map(([k,v])=>({k,n:v.length,y:v.filter(r=>isYes(r.valida)).length})).sort((a,b)=>b.n-a.n);$('#products').innerHTML=products.map(x=>`<tr><td>${esc(x.k)}</td><td class="num">${x.n}</td><td class="num">${x.y}</td><td class="num">${val(pct(x.y,x.n))}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Sin datos</td></tr>';renderDetail();}
-    function pill(v){return `<span class="pill ${isYes(v)?'yes':isNo(v)?'no':'na'}">${esc(v||'No aplica')}</span>`} function renderDetail(){let q=norm($('#search').value),rs=rows().filter(r=>!q||norm([r.asesor,r.producto,r.plan,r.obs].join(' ')).includes(q)).sort((a,b)=>(date(b.fecha)||0)-(date(a.fecha)||0));$('#detail').innerHTML=rs.map(r=>`<tr><td>${shownDate(r.fecha)}</td><td>${esc(r.asesor)}</td><td>${esc([r.producto,r.plan].filter(Boolean).join(' · '))}</td><td class="num">${tmof(tmo(r.tmo))}</td><td>${pill(r.valida)}</td><td>${pill(r.critico)}</td><td>${esc(r.obs)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Sin coincidencias</td></tr>'}
-    async function init(){try{const r=await fetch(DATA_URL);if(!r.ok)throw Error('No se pudo descargar la hoja');let [h,...data]=csv(await r.text()),idx=Object.fromEntries(h.map((x,i)=>[norm(x),i])),get=(row,name)=>row[idx[norm(name)]]||'';all=data.map(r=>({asesor:get(r,'ASESOR').trim(),fecha:dayKey(get(r,'FECHA')),id:get(r,'ID DE LLAMADA'),tmo:get(r,'TMO'),producto:get(r,'PRODUCTO'),plan:get(r,'TIPO DE PRODUCTO O PLAN'),info:get(r,'INFORMACIÓN DE PRODUCTO'),datos:get(r,'SOLICITUD DATOS CLIENTE'),contrato:get(r,'CONTRATO SEGÚN PLAN Y PROMOCIONES DE PRODUCTO'),facturacion:get(r,'FACTURACIÓN'),costos:get(r,'COSTOS DE ENVÍOS Y PRODUCTOS'),permin:get(r,'PERMIN'),critico:get(r,'ERROR CRÍTICO'),valida:get(r,'VENTA VÁLIDA / CORRECTA'),obs:get(r,'OBSERVACIONES / RECOMENDACIONES')})).filter(r=>r.asesor);let seen=new Map();all.forEach(r=>{let k=r.id||[r.fecha,r.asesor,r.tmo].join('|');seen.set(k,r)});all=[...seen.values()];[...new Set(all.map(r=>r.asesor))].sort().forEach(a=>$('#advisor').insertAdjacentHTML('beforeend',`<option value="${esc(a)}">${esc(a)}</option>`));$('#status').textContent=`${all.length} evaluaciones cargadas desde la hoja de validación.`;render()}catch(e){$('#status').className='status error';$('#status').textContent='No se pudo cargar la fuente de datos. Verifica que la hoja permita acceso de lectura.';console.error(e)}}$('#advisor').addEventListener('change',render);$('#search').addEventListener('input',renderDetail);init();
-  </script>
-</body>
-</html>
+<style>
+.mq{display:flex;flex-direction:column;gap:var(--cds-gap-lg);font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+.mq-head{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);align-items:flex-end;justify-content:space-between}
+.mq-head>div:first-child{min-width:0;flex:1 1 28rem}
+.mq-head h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.mq-take{margin:var(--cds-gap-xs) 0 0;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);max-width:72ch;line-height:1.5}
+.mq .mq-take b{color:var(--color-fg);font-weight:600}
+.mq-filter{display:flex;flex-direction:column;gap:4px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mq-filter-row{display:flex;gap:var(--cds-gap-sm);align-items:center;flex-wrap:wrap}
+.mq-filter select{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;max-width:100%}
+.mq-clear{font:inherit;font-size:var(--cds-font-size-caption);background:none;border:1px solid var(--color-border-line);border-radius:999px;padding:4px 10px;color:var(--color-fg);cursor:pointer}
+.mq-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:var(--cds-gap-md)}
+.mq-tile{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);display:flex;flex-direction:column;gap:4px;min-width:0}
+.mq-label{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mq-big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:2rem;line-height:1.15;font-variant-numeric:tabular-nums}
+.mq-sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.mq-ok{color:var(--color-ok)}.mq-warn{color:var(--color-warn)}.mq-bad{color:var(--color-bad)}
+.mq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr));gap:var(--cds-gap-md)}
+.mq-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-sm);min-width:0;position:relative}
+.mq-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.mq-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0;line-height:1.45}
+.mq-chart{min-height:230px;position:relative}
+.mq-legend{display:flex;gap:var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mq-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.mq-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap;z-index:2}
+.mq-tip span{color:var(--cds-text-secondary)}
+.mq-crit{display:flex;flex-direction:column;gap:var(--cds-gap-sm);min-height:230px}
+.mq-crow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px var(--cds-gap-sm);font-size:var(--cds-font-size-caption)}
+.mq-crow .mq-track{grid-column:1/-1;height:10px;border-radius:999px;background:var(--cds-chart-grid);overflow:hidden}
+.mq-crow .mq-fill{height:100%;border-radius:999px}
+.mq-crow .mq-pct{font-variant-numeric:tabular-nums;font-weight:600}
+.mq-crow .mq-cnt{grid-column:1/-1;color:var(--color-fg-muted)}
+.mq-scroll{overflow:auto;max-height:520px}
+.mq table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.mq th{position:sticky;top:0;background:var(--color-panel);text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap;z-index:1}
+.mq th button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.mq td{padding:7px 8px;border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.mq td.num,.mq th.num{text-align:right}
+.mq-rank tbody tr{cursor:pointer}
+.mq-rank tbody tr:hover{background:var(--cds-chart-grid)}
+.mq-rank tbody tr.on{outline:2px solid var(--color-fg-muted);outline-offset:-2px}
+.mq-cellbar{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.mq-cellbar i{display:inline-block;height:6px;border-radius:3px;background:var(--cds-chart-muted)}
+.mq-chip{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:600;border:1px solid currentColor}
+.mq-obs{white-space:pre-line;min-width:18rem;max-width:42rem;color:var(--color-fg-muted)}
+.mq-search{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;max-width:22rem;width:100%}
+.mq-fail{display:flex;align-items:center;justify-content:center;gap:8px;min-height:inherit;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.mq-fail::before{content:"";width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)}
+.mq [data-dash-source-state=empty]{color:transparent}
+.mq [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+</style>
+<style>
+/* Tema visual adaptado del segundo index: paleta corporativa y tipografías, sin insignias ni logotipos. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap');
+.mq{
+  --cx-red:#DA291C; --cx-red-dk:#B31F14; --cx-navy:#1D4F8C;
+  --cx-ink:#16202E; --cx-ink2:#4A5568; --cx-muted:#6B7686;
+  --cx-line:#DFE3EA; --cx-bg:#F3F5F8; --cx-soft:#F7F8FA;
+  --cx-shadow:0 1px 2px rgba(22,32,46,.05),0 2px 10px rgba(22,32,46,.04);
+  --cx-body:"Barlow","Segoe UI",Arial,sans-serif;
+  --cx-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --claro-red:var(--cx-red); --claro-red-dark:var(--cx-red-dk); --claro-navy:var(--cx-navy);
+  --claro-ink:var(--cx-ink); --claro-muted:var(--cx-muted); --claro-soft:var(--cx-bg);
+  --claro-line:var(--cx-line); --claro-success:#0E7C66; --claro-warning:#B7791F;
+  --color-fg:var(--cx-ink); --color-fg-muted:var(--cx-muted); --color-panel:#FFFFFF;
+  --color-bg:var(--cx-bg); --color-border-line:var(--cx-line); --color-ok:#0E7C66;
+  --color-warn:#B7791F; --color-bad:var(--cx-red);
+  --cds-chart-status-critical:var(--cx-red); --cds-chart-muted:var(--cx-navy); --cds-chart-grid:#E9EDF3;
+  --cds-gap-lg:28px; --cds-gap-md:16px; --cds-gap-sm:10px; --cds-gap-xs:6px;
+  --cds-pad-lg:24px; --cds-pad-md:18px; --cds-pad-sm:12px; --cds-pad-xs:7px;
+  --cds-radius:10px; --cds-font-size-title:clamp(26px,3vw,34px);
+  --cds-font-size-heading:24px; --cds-font-size-body:14px; --cds-font-size-caption:12px;
+  --cds-font-weight-medium:600; --cds-dur-slow:.2s;
+  max-width:1440px; margin:0 auto; padding:28px;
+  background:var(--cx-bg); color:var(--cx-ink); font-family:var(--cx-body); font-size:15px; line-height:1.5;
+}
+.mq *{box-sizing:border-box}
+.mq-head{background:#fff;border:1px solid var(--cx-line);border-bottom:4px solid var(--cx-red);border-radius:8px;padding:24px 28px;color:var(--cx-ink);box-shadow:var(--cx-shadow)}
+.mq-head h1{font-family:var(--cx-display);font-weight:700;font-size:var(--cds-font-size-title);letter-spacing:.005em;color:var(--cx-ink);line-height:1.08}
+.mq-head h1::before{content:none!important;display:none!important}
+.mq-take{color:var(--cx-muted);font-size:14px}.mq .mq-take b{color:var(--cx-ink);font-weight:700}
+.mq-filter{color:var(--cx-ink2);font-weight:600;font-family:var(--cx-body)}
+.mq-filter select{min-width:190px;background:#fff;border:1px solid var(--cx-line);border-radius:6px;color:var(--cx-ink);padding:8px 10px;font-family:var(--cx-body)}
+.mq-clear{color:var(--cx-ink);border-color:var(--cx-line);background:#fff;border-radius:6px;padding:6px 10px}
+.mq-tiles{gap:14px}.mq-tile{background:#fff;border:1px solid var(--cx-line);border-top:4px solid var(--cx-red);border-radius:8px;box-shadow:var(--cx-shadow);padding:18px}
+.mq-label{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--cx-muted);font-size:11.5px}
+.mq-big{font-family:var(--cx-display);font-weight:700;font-size:32px;color:var(--cx-navy);font-variant-numeric:tabular-nums}
+.mq-sub{font-size:12px;color:var(--cx-muted)}
+.mq-card{background:#fff;border:1px solid var(--cx-line);border-radius:8px;box-shadow:var(--cx-shadow);padding:22px}
+.mq-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--cx-red);border-radius:8px 8px 0 0}
+.mq-card h2{font-family:var(--cx-display);color:var(--cx-ink);font-size:24px;font-weight:600;letter-spacing:.005em}
+.mq-note{color:var(--cx-muted);font-size:13px}
+.mq-legend{font-family:var(--cx-body)}.mq-legend i{border-radius:2px}
+.mq-crow .mq-track{background:#D5DDE8}.mq-crow .mq-fill{background:var(--cx-navy)}
+.mq th{background:var(--cx-soft);color:var(--cx-ink2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:11.5px;border-bottom:2px solid var(--cx-red)}
+.mq td{border-bottom-color:#E5E9F0}.mq-rank tbody tr:hover{background:#EAF0F7}.mq-rank tbody tr.on{outline-color:var(--cx-navy)}
+.mq-chip{color:var(--cx-red);background:#FCE9E7}.mq-search{background:#fff;border-radius:6px;border-color:#DFE3EA;font-family:var(--cx-body)}
+.mq-search:focus,.mq-filter select:focus{outline:3px solid rgba(29,79,140,.18);outline-offset:1px}
+.mq-ok{color:#0E7C66}.mq-warn{color:#B7791F}.mq-bad{color:var(--cx-red)}
+@media(max-width:640px){.mq{padding:14px}.mq-head{padding:20px 16px}.mq-head h1{font-size:27px}.mq-card{padding:18px}.mq-tiles{grid-template-columns:1fr 1fr}.mq-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="mq">
+  <header class="mq-head" id="encabezado">
+    <div>
+      <h1 id="titulo">Monitoreo de calidad · Ventas</h1>
+      <p class="mq-take" id="conclusion">Venta válida en <b data-kpi data-source="resumen" data-field="pct_valida" data-where="asesor=Todos">—</b> de las <b data-kpi data-source="resumen" data-field="llamadas" data-where="asesor=Todos">—</b> llamadas monitoreadas. El criterio con menor cumplimiento es <b data-kpi data-source="resumen" data-field="falla_principal" data-where="asesor=Todos">—</b> (<b data-kpi data-source="resumen" data-field="falla_cumple" data-where="asesor=Todos">—</b>).</p>
+    </div>
+    <div class="mq-filter">
+      <label for="mq-asesor">Asesor</label>
+      <div class="mq-filter-row">
+        <select id="mq-asesor" data-source="resumen"></select>
+        <button class="mq-clear" id="mq-limpiar" hidden>Ver todos ×</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="mq-tiles" id="indicadores">
+    <div class="mq-tile">
+      <span class="mq-label">Llamadas monitoreadas</span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="llamadas" data-where="asesor=Todos">—</b>
+      <span class="mq-sub">Evaluación más reciente de cada llamada</span>
+    </div>
+    <div class="mq-tile">
+      <span class="mq-label">Venta válida / correcta</span>
+      <b class="mq-big dash-skeleton" id="kpi-valida" data-kpi data-source="resumen" data-field="pct_valida" data-where="asesor=Todos">—</b>
+      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="validas" data-where="asesor=Todos">—</span> ventas válidas · meta 90%</span>
+    </div>
+    <div class="mq-tile">
+      <span class="mq-label">Con error crítico</span>
+      <b class="mq-big dash-skeleton" id="kpi-error" data-kpi data-source="resumen" data-field="pct_error" data-where="asesor=Todos">—</b>
+      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="errores" data-where="asesor=Todos">—</span> llamadas con error crítico</span>
+    </div>
+    <div class="mq-tile">
+      <span class="mq-label">TMO promedio</span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="tmo_prom" data-where="asesor=Todos">—</b>
+      <span class="mq-sub">Minutos:segundos por llamada</span>
+    </div>
+    <div class="mq-tile">
+      <span class="mq-label">Última llamada monitoreada</span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="ultima" data-where="asesor=Todos">—</b>
+      <span class="mq-sub">Fecha de la llamada (día/mes)</span>
+    </div>
+  </section>
+
+  <section class="mq-grid">
+    <div class="mq-card" id="tendencia-card">
+      <h2>Llamadas monitoreadas por día</h2>
+      <p class="mq-note">Por fecha de la llamada, separadas según el resultado de la venta.</p>
+      <div class="mq-legend"><span><i id="sw-valida"></i>Venta válida</span><span><i style="background:var(--cds-chart-status-critical)"></i>No válida</span></div>
+      <div class="mq-chart dash-skeleton" id="mq-trend" data-source="tendencia"></div>
+    </div>
+    <div class="mq-card" id="criterios-card">
+      <h2>Cumplimiento por criterio</h2>
+      <p class="mq-note">Porcentaje de "Sí" sobre las llamadas donde el criterio aplica. En rojo, debajo de 85%.</p>
+      <div class="mq-crit dash-skeleton" id="mq-crit" data-source="criterios"></div>
+    </div>
+  </section>
+
+  <section class="mq-grid">
+    <div class="mq-card" id="ranking-card">
+      <h2>Ranking por asesor</h2>
+      <p class="mq-note">Haz clic en un asesor para filtrar todo el tablero. Ordena con los encabezados.</p>
+      <div class="mq-scroll">
+        <table class="mq-rank" id="mq-rank" data-source="resumen" data-row-key="asesor">
+          <thead><tr>
+            <th data-field="asesor"><button data-sort="asesor">Asesor</button></th>
+            <th class="num" data-field="llamadas"><button data-sort="llamadas">Llamadas</button></th>
+            <th class="num" data-field="pct_valida"><button data-sort="pct_valida">% válida</button></th>
+            <th class="num" data-field="errores"><button data-sort="errores">Errores críticos</button></th>
+            <th class="num" data-field="tmo_prom"><button data-sort="tmo_seg">TMO</button></th>
+            <th data-field="falla_principal"><button data-sort="falla_principal">Criterio a reforzar</button></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mq-card" id="producto-card">
+      <h2>Resultado por producto</h2>
+      <p class="mq-note">Llamadas monitoreadas y porcentaje de venta válida por tipo de producto.</p>
+      <div class="mq-scroll">
+        <table id="mq-prod" data-source="productos" data-row-key="asesor,producto">
+          <thead><tr>
+            <th data-field="producto">Producto</th>
+            <th class="num" data-field="llamadas">Llamadas</th>
+            <th class="num" data-field="validas">Válidas</th>
+            <th class="num" data-field="pct_valida">% válida</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="mq-card" id="detalle-card">
+    <h2>Detalle de llamadas evaluadas</h2>
+    <p class="mq-note">Busca por asesor, producto, plan u observación. Las llamadas con error crítico aparecen primero dentro de cada fecha.</p>
+    <input class="mq-search" id="mq-buscar" type="search" placeholder="Buscar…" aria-label="Buscar en el detalle">
+    <div class="mq-scroll">
+      <table id="mq-det" data-source="evals" data-row-key="clave">
+        <thead><tr>
+          <th data-field="fecha">Fecha</th>
+          <th data-field="asesor">Asesor</th>
+          <th data-field="producto">Producto</th>
+          <th class="num" data-field="tmo">TMO</th>
+          <th data-field="venta_valida">Válida</th>
+          <th data-field="error_critico">Error crítico</th>
+          <th data-field="observaciones">Observaciones</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mq-card" id="calidad-card">
+    <h2>Revisión de la base</h2>
+    <p class="mq-note">Inconsistencias encontradas en las respuestas del formulario. Corregirlas en origen mejora la precisión del seguimiento.</p>
+    <div class="mq-scroll">
+      <table id="mq-dq" data-source="calidad_base" data-row-key="problema">
+        <thead><tr>
+          <th data-field="problema">Hallazgo</th>
+          <th class="num" data-field="cantidad">Filas</th>
+          <th data-field="detalle">Qué hace el tablero / qué corregir</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+dash.loader('monitoreo', {
+  description: 'Decodifica el CSV que exporta Google Drive (en base64) y lo convierte en filas, con nombres de columna cortos.',
+  fn: ({ answer }) => {
+    const a = typeof answer === 'string' ? JSON.parse(answer) : answer;
+    if (!a || typeof a.content !== 'string') throw new Error('Google Drive no devolvió el contenido del archivo. Claves recibidas: ' + Object.keys(a || {}).join(', '));
+    const bin = atob(a.content);
+    const text = new TextDecoder('utf-8').decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    const filas = [];
+    let fila = [], campo = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { campo += '"'; i++; } else q = false; }
+        else campo += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { fila.push(campo); campo = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        fila.push(campo); filas.push(fila); fila = []; campo = '';
+      } else campo += c;
+    }
+    if (campo !== '' || fila.length) { fila.push(campo); filas.push(fila); }
+    const columnas = ['marca_temporal', 'asesor', 'fecha', 'id_llamada', 'telefono', 'tmo', 'producto', 'plan', 'info_producto', 'datos_cliente', 'contrato', 'facturacion', 'costos_envio', 'permin', 'error_critico', 'venta_valida', 'observaciones'];
+    const cuerpo = filas.slice(1).filter((r) => r.some((x) => x.trim() !== ''));
+    return { columns: columnas, rows: cuerpo.map((r) => Object.fromEntries(columnas.map((k, i) => [k, r[i] ?? '']))) };
+  },
+});
+
+dash.calc('evals', {
+  inputs: ['monitoreo'],
+  title: 'Llamadas evaluadas (sin duplicados)',
+  description: 'Una fila por llamada (fecha + teléfono), la evaluación más reciente; nombres normalizados y TMO en segundos.',
+  fn: (monitoreo) => {
+    const p2 = (n) => String(n).padStart(2, '0');
+    const fecha = (s) => { const m = (s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/); return m ? { y: +m[3], mo: +m[1], d: +m[2], h: +(m[4] || 0), mi: +(m[5] || 0), s: +(m[6] || 0) } : null; };
+    const nombre = (s) => { let n = (s || '').trim().replace(/\s+/g, ' ').toUpperCase(); if (n.startsWith('ONTOYA ')) n = 'M' + n; return n; };
+    // Un TMO con horas (16:59:00) se cargó como mm:ss
+    const tmoSeg = (s) => { const p = (s || '').trim().split(':').map(Number); if (p.length < 2 || p.some(isNaN)) return null; const [h, m, x] = p.length === 3 ? p : [0, p[0], p[1]]; return h > 0 ? h * 60 + m : m * 60 + x; };
+    const t = (v) => (v || '').trim();
+    const out = new Map();
+    for (const r of monitoreo) {
+      const ev = fecha(r.marca_temporal), f = fecha(r.fecha);
+      if (!ev || !f) continue;
+      const dia = `${f.y !== ev.y ? ev.y : f.y}-${p2(f.mo)}-${p2(f.d)}`;
+      const tel = (r.telefono || '').replace(/\D/g, '').replace(/^0+/, '');
+      const clave = `${dia}|${tel || t(r.id_llamada)}`;
+      const evaluado = `${ev.y}-${p2(ev.mo)}-${p2(ev.d)} ${p2(ev.h)}:${p2(ev.mi)}:${p2(ev.s)}`;
+      const seg = tmoSeg(r.tmo);
+      const fila = {
+        clave, fecha: dia, evaluado, asesor: nombre(r.asesor), id_llamada: t(r.id_llamada),
+        producto: t(r.producto), plan: t(r.plan), tmo_seg: seg, tmo: seg == null ? '' : `${Math.floor(seg / 60)}:${p2(seg % 60)}`,
+        info_producto: t(r.info_producto), datos_cliente: t(r.datos_cliente), contrato: t(r.contrato), facturacion: t(r.facturacion),
+        costos_envio: t(r.costos_envio), permin: t(r.permin), error_critico: t(r.error_critico), venta_valida: t(r.venta_valida),
+        observaciones: t(r.observaciones), evaluaciones: 1,
+      };
+      const prev = out.get(clave);
+      if (prev) {
+        fila.evaluaciones = prev.evaluaciones + 1;
+        if (prev.evaluado > evaluado) { prev.evaluaciones = fila.evaluaciones; continue; }
+      }
+      out.set(clave, fila);
+    }
+    return [...out.values()].sort((a, b) => (a.fecha !== b.fecha ? (a.fecha < b.fecha ? 1 : -1) : (a.error_critico === b.error_critico ? 0 : a.error_critico === 'Sí' ? -1 : 1)));
+  },
+});
+
+dash.calc('resumen', {
+  inputs: ['evals'],
+  title: 'Resumen por asesor',
+  description: 'Llamadas, % de venta válida, errores críticos, TMO promedio y criterio más débil, por asesor y en total ("Todos").',
+  fn: (evals) => {
+    const criterios = [['info_producto', 'Información de producto'], ['datos_cliente', 'Solicitud de datos del cliente'], ['contrato', 'Contrato según plan y promociones'], ['facturacion', 'Facturación'], ['costos_envio', 'Costos de envíos y productos'], ['permin', 'Permanencia mínima (PERMIN)']];
+    const grupos = new Map([['Todos', evals]]);
+    for (const e of evals) { if (!grupos.has(e.asesor)) grupos.set(e.asesor, []); grupos.get(e.asesor).push(e); }
+    return [...grupos].map(([asesor, rs]) => {
+      const validas = rs.filter((e) => e.venta_valida === 'Sí').length;
+      const errores = rs.filter((e) => e.error_critico === 'Sí').length;
+      const tiempos = rs.map((e) => e.tmo_seg).filter((v) => v != null);
+      const tmo = tiempos.length ? Math.round(tiempos.reduce((a, b) => a + b, 0) / tiempos.length) : null;
+      let peor = null;
+      for (const [k, nombre] of criterios) {
+        const si = rs.filter((e) => e[k] === 'Sí').length, no = rs.filter((e) => e[k] === 'No').length;
+        if (no > 0 && (!peor || si / (si + no) < peor.p)) peor = { nombre, p: si / (si + no) };
+      }
+      return {
+        asesor, llamadas: rs.length, validas, pct_valida: rs.length ? validas / rs.length : null,
+        errores, pct_error: rs.length ? errores / rs.length : null, tmo_seg: tmo,
+        tmo_prom: tmo == null ? '' : `${Math.floor(tmo / 60)}:${String(tmo % 60).padStart(2, '0')}`,
+        falla_principal: peor ? peor.nombre : 'Sin fallas', falla_cumple: peor ? peor.p : 1,
+        ultima: rs.reduce((m, e) => (e.fecha > m ? e.fecha : m), ''),
+      };
+    });
+  },
+});
+
+dash.calc('criterios', {
+  inputs: ['evals'],
+  title: 'Cumplimiento por criterio',
+  description: 'Sí, No y No aplica por criterio de la ficha; cumplimiento = Sí / (Sí + No). Por asesor y en total.',
+  fn: (evals) => {
+    const criterios = [['info_producto', 'Información de producto'], ['datos_cliente', 'Solicitud de datos del cliente'], ['contrato', 'Contrato según plan y promociones'], ['facturacion', 'Facturación'], ['costos_envio', 'Costos de envíos y productos'], ['permin', 'Permanencia mínima (PERMIN)']];
+    const grupos = new Map([['Todos', evals]]);
+    for (const e of evals) { if (!grupos.has(e.asesor)) grupos.set(e.asesor, []); grupos.get(e.asesor).push(e); }
+    const filas = [];
+    for (const [asesor, rs] of grupos) {
+      for (const [k, criterio] of criterios) {
+        const si = rs.filter((e) => e[k] === 'Sí').length, no = rs.filter((e) => e[k] === 'No').length;
+        filas.push({ asesor, criterio, si, no, no_aplica: rs.length - si - no, cumple: si + no ? si / (si + no) : null });
+      }
+    }
+    return filas;
+  },
+});
+
+dash.calc('tendencia', {
+  inputs: ['evals'],
+  title: 'Llamadas por día',
+  description: 'Llamadas monitoreadas por fecha de llamada, válidas y no válidas, por asesor y en total.',
+  fn: (evals) => {
+    const m = new Map();
+    for (const e of evals) {
+      for (const asesor of ['Todos', e.asesor]) {
+        const k = asesor + '|' + e.fecha;
+        if (!m.has(k)) m.set(k, { asesor, fecha: e.fecha, llamadas: 0, validas: 0, no_validas: 0 });
+        const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++; else r.no_validas++;
+      }
+    }
+    return [...m.values()];
+  },
+});
+
+dash.calc('productos', {
+  inputs: ['evals'],
+  title: 'Resultado por producto',
+  description: 'Llamadas y venta válida por producto (migración, portabilidad, etc.), por asesor y en total.',
+  fn: (evals) => {
+    const m = new Map();
+    for (const e of evals) {
+      for (const asesor of ['Todos', e.asesor]) {
+        const k = asesor + '|' + e.producto;
+        if (!m.has(k)) m.set(k, { asesor, producto: e.producto, llamadas: 0, validas: 0 });
+        const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++;
+      }
+    }
+    return [...m.values()].map((r) => ({ ...r, pct_valida: r.validas / r.llamadas }));
+  },
+});
+
+dash.calc('calidad_base', {
+  inputs: ['monitoreo'],
+  title: 'Revisión de la base',
+  description: 'Cuenta filas del formulario con duplicados, formatos o respuestas inconsistentes.',
+  fn: (monitoreo) => {
+    const dia = (s) => (s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    const claves = new Map();
+    let tmoHoras = 0, anio = 0, tel = 0, idEsp = 0, nombres = 0, incoh = 0, sinObs = 0;
+    for (const r of monitoreo) {
+      const f = dia(r.fecha), ev = dia(r.marca_temporal);
+      if (f && ev && f[3] !== ev[3]) anio++;
+      const k = (f ? f[1] + '/' + f[2] : '') + '|' + (r.telefono || '').replace(/\D/g, '').replace(/^0+/, '');
+      claves.set(k, (claves.get(k) || 0) + 1);
+      const p = (r.tmo || '').trim().split(':');
+      if (p.length === 3 && Number(p[0]) > 0) tmoHoras++;
+      if ((r.telefono || '').replace(/\D/g, '').length !== 10) tel++;
+      const id = r.id_llamada || '';
+      if (id !== id.trim()) idEsp++;
+      const n = (r.asesor || '').trim().toUpperCase();
+      if (/\s{2,}/.test(n) || n.startsWith('ONTOYA ')) nombres++;
+      const ec = (r.error_critico || '').trim(), vv = (r.venta_valida || '').trim();
+      if ((ec === 'Sí' && vv === 'Sí') || (ec === 'No' && vv === 'No')) incoh++;
+      if (!(r.observaciones || '').trim()) sinObs++;
+    }
+    const dup = [...claves.values()].filter((c) => c > 1).reduce((a, c) => a + c - 1, 0);
+    return [
+      { problema: 'Llamadas evaluadas más de una vez', cantidad: dup, detalle: 'Misma fecha y teléfono registrados varias veces. Se cuenta solo la evaluación más reciente.' },
+      { problema: 'TMO cargado como horas', cantidad: tmoHoras, detalle: 'Ej. 16:59:00 en vez de 0:16:59. Se lee como minutos:segundos. Corregir el formato en el formulario.' },
+      { problema: 'Fecha de llamada con año distinto', cantidad: anio, detalle: 'El año no coincide con la fecha de registro (ej. 2025). Se usa el año del registro.' },
+      { problema: 'Teléfono sin 10 dígitos', cantidad: tel, detalle: 'Números sin el 0 inicial u otra longitud. Validar el campo en el formulario.' },
+      { problema: 'ID de llamada con espacios', cantidad: idEsp, detalle: 'Espacios al inicio o al final del ID. Se recortan.' },
+      { problema: 'Nombre de asesor con variantes', cantidad: nombres, detalle: 'Espacios dobles o errores de escritura (ONTOYA / MONTOYA). Se normalizan; conviene usar una lista desplegable.' },
+      { problema: 'Error crítico y venta válida contradictorios', cantidad: incoh, detalle: 'Error crítico Sí con venta válida Sí, o ambos No. Revisar la ficha.' },
+      { problema: 'Evaluación sin observaciones', cantidad: sinObs, detalle: 'Sin retroalimentación escrita para el asesor.' },
+    ];
+  },
+});
+</script>
+
+<script>
+(() => {
+  const pct = d3.format('.0%');
+  const num = d3.format(',');
+  const enc = (s) => String(s).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D');
+  const dm = (s) => { if (!s) return ''; const [, m, d] = s.split('-'); return `${d}/${m}`; };
+  const fmt = { pct_valida: pct, pct_error: pct, falla_cumple: pct, llamadas: num, validas: num, errores: num, ultima: dm };
+  const sel = document.getElementById('mq-asesor');
+  const limpiar = document.getElementById('mq-limpiar');
+  const buscar = document.getElementById('mq-buscar');
+  let orden = { campo: 'llamadas', dir: -1 };
+  const actual = () => dash.params().asesor || 'Todos';
+  const elegir = (a) => dash.setParams({ asesor: a });
+
+  sel.addEventListener('change', () => elegir(sel.value));
+  limpiar.addEventListener('click', () => elegir('Todos'));
+  buscar.addEventListener('input', () => draw());
+  document.getElementById('mq-rank').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-sort]');
+    if (b) {
+      const c = b.dataset.sort;
+      orden = orden.campo === c ? { campo: c, dir: -orden.dir } : { campo: c, dir: c === 'asesor' || c === 'falla_principal' ? 1 : -1 };
+      draw();
+      return;
+    }
+    const tr = ev.target.closest('tr[data-key]');
+    if (tr) elegir(tr.dataset.key === actual() ? 'Todos' : tr.dataset.key);
+  });
+
+  const fallo = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'mq-fail'; d.textContent = 'Failed to load'; el.append(d); };
+  const vacio = (el, txt) => { el.replaceChildren(); const p = document.createElement('p'); p.className = 'mq-note'; p.textContent = txt; el.append(p); };
+  const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = txt; return c; };
+  const chip = (v, malo) => { const c = document.createElement('td'); const s = document.createElement('span'); s.className = 'mq-chip ' + (v === malo ? 'mq-bad' : 'mq-ok'); s.textContent = v; c.append(s); return c; };
+  const tono = (el, v, bien, regular, alto) => { el.classList.remove('mq-ok', 'mq-warn', 'mq-bad'); if (v == null) return; const ok = alto ? v >= bien : v <= bien; const reg = alto ? v >= regular : v <= regular; el.classList.add(ok ? 'mq-ok' : reg ? 'mq-warn' : 'mq-bad'); };
+
+  function draw() {
+    const a = actual();
+    const R = dash.data('resumen');
+    const rows = R.status === 'ok' ? R.data : [];
+    const fila = rows.find((r) => r.asesor === a) || rows.find((r) => r.asesor === 'Todos');
+    const asesor = fila ? fila.asesor : 'Todos';
+    limpiar.hidden = asesor === 'Todos';
+    document.getElementById('titulo').textContent = asesor === 'Todos' ? 'Monitoreo de calidad · Ventas' : 'Monitoreo de calidad · ' + asesor;
+
+    // Selector
+    const nombres = rows.filter((r) => r.asesor !== 'Todos').map((r) => r.asesor).sort();
+    sel.replaceChildren(new Option('Todos los asesores', 'Todos'), ...nombres.map((n) => new Option(n, n)));
+    sel.value = asesor;
+
+    // Indicadores
+    document.querySelectorAll('[data-kpi]').forEach((el) => {
+      el.setAttribute('data-where', 'asesor=' + enc(asesor));
+      if (R.status !== 'ok' || !fila) { el.textContent = '—'; if (R.status !== 'loading') el.classList.remove('dash-skeleton'); return; }
+      el.classList.remove('dash-skeleton');
+      const v = fila[el.dataset.field];
+      el.textContent = v == null || v === '' ? '—' : fmt[el.dataset.field] ? fmt[el.dataset.field](v) : v;
+    });
+    tono(document.getElementById('kpi-valida'), fila && fila.pct_valida, 0.9, 0.75, true);
+    tono(document.getElementById('kpi-error'), fila && fila.pct_error, 0.05, 0.15, false);
+
+    drawTrend(asesor);
+    drawCrit(asesor);
+    drawRank(rows, asesor, R.status);
+    drawProd(asesor);
+    drawDet(asesor);
+    drawDq();
+  }
+
+  function drawTrend(asesor) {
+    const box = document.getElementById('mq-trend');
+    const D = dash.data('tendencia');
+    document.getElementById('sw-valida').style.background = dash.colors[0];
+    if (D.status === 'loading') return;
+    box.classList.remove('dash-skeleton');
+    if (D.status !== 'ok') return fallo(box);
+    const data = D.data.filter((r) => r.asesor === asesor).sort((x, y) => (x.fecha < y.fecha ? -1 : 1));
+    if (!data.length) return vacio(box, 'Sin llamadas para este asesor.');
+    box.replaceChildren();
+    const w = Math.max(280, box.clientWidth || 600), h = 230, m = { t: 12, r: 8, b: 26, l: 30 };
+    const x = d3.scaleBand(data.map((d) => d.fecha), [m.l, w - m.r]).padding(0.3);
+    const y = d3.scaleLinear([0, d3.max(data, (d) => d.llamadas) || 1], [h - m.b, m.t]).nice();
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).style('display', 'block');
+    const ticks = y.ticks(4).filter(Number.isInteger);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (d) => y(d)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => d);
+    const bw = Math.min(32, x.bandwidth());
+    const off = (x.bandwidth() - bw) / 2;
+    const g = svg.append('g').selectAll('g').data(data).join('g');
+    g.append('rect').attr('x', (d) => x(d.fecha) + off).attr('width', bw).attr('y', (d) => y(d.validas)).attr('height', (d) => y(0) - y(d.validas)).attr('fill', dash.colors[0]);
+    g.append('rect').attr('x', (d) => x(d.fecha) + off).attr('width', bw).attr('y', (d) => y(d.llamadas)).attr('height', (d) => y(d.validas) - y(d.llamadas)).attr('fill', 'var(--cds-chart-status-critical)');
+    const paso = Math.ceil(36 / x.step());
+    svg.append('g').selectAll('text').data(data.filter((d, i) => i % paso === 0)).join('text').attr('x', (d) => x(d.fecha) + x.bandwidth() / 2).attr('y', h - 8).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => dm(d.fecha));
+    svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = document.createElement('div'); tip.className = 'mq-tip'; tip.hidden = true; box.append(tip);
+    g.append('rect').attr('x', (d) => x(d.fecha)).attr('width', x.step()).attr('y', m.t).attr('height', h - m.t - m.b).attr('fill', 'transparent')
+      .on('mousemove', (ev, d) => {
+        tip.replaceChildren();
+        const s = document.createElement('span'); s.textContent = dm(d.fecha); tip.append(s, document.createElement('br'), `${d.llamadas} llamadas · ${d.validas} válidas · ${d.no_validas} no válidas`);
+        tip.hidden = false;
+        const bx = box.getBoundingClientRect();
+        const px = (x(d.fecha) + x.bandwidth() / 2) / w * bx.width;
+        tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + 'px';
+        tip.style.top = Math.max(0, y(d.llamadas) / h * bx.height - tip.offsetHeight - 8) + 'px';
+      })
+      .on('mouseleave', () => { tip.hidden = true; });
+  }
+
+  function drawCrit(asesor) {
+    const box = document.getElementById('mq-crit');
+    const D = dash.data('criterios');
+    if (D.status === 'loading') return;
+    box.classList.remove('dash-skeleton');
+    if (D.status !== 'ok') return fallo(box);
+    const data = D.data.filter((r) => r.asesor === asesor);
+    box.replaceChildren();
+    for (const r of data) {
+      const row = document.createElement('div'); row.className = 'mq-crow';
+      const l = document.createElement('span'); l.textContent = r.criterio;
+      const v = document.createElement('span'); v.className = 'mq-pct'; v.textContent = r.cumple == null ? 'No aplica' : pct(r.cumple);
+      const tr = document.createElement('div'); tr.className = 'mq-track';
+      const f = document.createElement('div'); f.className = 'mq-fill'; f.style.width = ((r.cumple ?? 0) * 100) + '%'; f.style.background = r.cumple != null && r.cumple < 0.85 ? 'var(--cds-chart-status-critical)' : dash.colors[0];
+      tr.append(f);
+      const c = document.createElement('span'); c.className = 'mq-cnt'; c.textContent = `${r.si} sí · ${r.no} no · ${r.no_aplica} no aplica`;
+      if (r.cumple != null && r.cumple < 0.85) v.classList.add('mq-bad');
+      row.append(l, v, tr, c);
+      box.append(row);
+    }
+  }
+
+  function drawRank(rows, asesor, status) {
+    const tb = document.querySelector('#mq-rank tbody');
+    tb.replaceChildren();
+    if (status !== 'ok') return;
+    const data = rows.filter((r) => r.asesor !== 'Todos');
+    const { campo, dir } = orden;
+    data.sort((p, q) => { const a = p[campo], b = q[campo]; if (a == null) return 1; if (b == null) return -1; return (typeof a === 'string' ? a.localeCompare(b) : a - b) * dir; });
+    document.querySelectorAll('#mq-rank th').forEach((th) => { const b = th.querySelector('button'); th.setAttribute('aria-sort', b.dataset.sort === campo ? (dir > 0 ? 'ascending' : 'descending') : 'none'); });
+    for (const r of data) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.asesor; if (r.asesor === asesor) tr.className = 'on';
+      const pv = document.createElement('td'); pv.className = 'num';
+      const cb = document.createElement('span'); cb.className = 'mq-cellbar';
+      const bar = document.createElement('i'); bar.style.width = Math.round((r.pct_valida || 0) * 48) + 'px'; bar.style.background = r.pct_valida < 0.75 ? 'var(--cds-chart-status-critical)' : dash.colors[0];
+      const t = document.createElement('span'); t.textContent = pct(r.pct_valida);
+      cb.append(bar, t); pv.append(cb);
+      const er = td(num(r.errores), 'num'); if (r.errores > 0) er.classList.add('mq-bad');
+      tr.append(td(r.asesor), td(num(r.llamadas), 'num'), pv, er, td(r.tmo_prom, 'num'), td(r.falla_principal));
+      tb.append(tr);
+    }
+  }
+
+  function drawProd(asesor) {
+    const tb = document.querySelector('#mq-prod tbody');
+    tb.replaceChildren();
+    const D = dash.data('productos');
+    if (D.status !== 'ok') return;
+    for (const r of D.data.filter((x) => x.asesor === asesor).sort((p, q) => q.llamadas - p.llamadas)) {
+      const tr = document.createElement('tr'); tr.dataset.key = enc(r.asesor).replace(/,/g, '%2C') + ',' + enc(r.producto).replace(/,/g, '%2C');
+      tr.append(td(r.producto), td(num(r.llamadas), 'num'), td(num(r.validas), 'num'), td(pct(r.pct_valida), 'num'));
+      tb.append(tr);
+    }
+  }
+
+  function drawDet(asesor) {
+    const tb = document.querySelector('#mq-det tbody');
+    tb.replaceChildren();
+    const D = dash.data('evals');
+    if (D.status !== 'ok') return;
+    const q = buscar.value.trim().toLowerCase();
+    const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (!q || [r.asesor, r.producto, r.plan, r.observaciones].join(' ').toLowerCase().includes(q)));
+    for (const r of data) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.clave;
+      tr.append(td(r.fecha), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));
+      tb.append(tr);
+    }
+  }
+
+  function drawDq() {
+    const tb = document.querySelector('#mq-dq tbody');
+    tb.replaceChildren();
+    const D = dash.data('calidad_base');
+    if (D.status !== 'ok') return;
+    for (const r of D.data) {
+      const tr = document.createElement('tr');
+      const c = td(num(r.cantidad), 'num'); if (r.cantidad > 0) c.classList.add('mq-warn');
+      tr.append(td(r.problema), c, td(r.detalle));
+      tb.append(tr);
+    }
+  }
+
+  dash.onData(draw);
+})();
+</script>
