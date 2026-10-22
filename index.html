@@ -36,6 +36,7 @@ html,body{margin:0;background:#F3F5F8;color:#16202E;font:14px/1.4 "Segoe UI",Ari
 const SHEET_ID = '1-RRAdX_vWOeBL0slXsBTX45QErT0d4cN6m_TJUMD_ik';
 const GID = '689062604';
 const REFRESCO_MIN = 5;
+const LOGO = 'logo-claro.png';
 
 /* Implementación mínima de la API "dash" para que el tablero funcione fuera de Claude. */
 window.dash = (() => {
@@ -91,6 +92,11 @@ window.dash = (() => {
       catch (e) { estado('El archivo no se pudo leer: ' + e.message, true); }
       ev.target.value = '';
     });
+    // Logo: se muestra si existe un archivo LOGO junto a index.html
+    const logo = new Image();
+    logo.alt = 'Claro';
+    logo.onload = () => { const slot = document.getElementById('mq-logo'); if (slot) slot.replaceChildren(logo); };
+    logo.src = LOGO;
     cargar();
     setInterval(cargar, REFRESCO_MIN * 60 * 1000);
     let w = window.innerWidth;
@@ -104,7 +110,7 @@ window.dash = (() => {
     onData: (fn) => { subs.push(fn); try { fn(); } catch (e) { console.error(e); } },
     params: () => ({ ...params }),
     setParams: (p) => { params = { ...params, ...p }; notificar(); },
-    resetParams: () => { params = { asesor: 'Todos' }; notificar(); },
+    resetParams: () => { params = { asesor: 'Todos', campana: 'Todos' }; notificar(); },
     refresh: () => cargar(),
     setLink: () => {},
   };
@@ -140,6 +146,18 @@ window.dash = (() => {
 .mq-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
 .mq-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0;line-height:1.45}
 .mq-chart{min-height:230px;position:relative}
+.mq-marca{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mq-logo:empty{display:none}
+.mq-logo img{display:block;height:44px;width:auto;max-width:160px}
+.mq-campanas{display:flex;flex-wrap:wrap;gap:8px;min-height:38px}
+.mq-campanas button{font:inherit;font-size:var(--cds-font-size-body);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);cursor:pointer}
+.mq-campanas button span{font-weight:500;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.mq-campanas button:hover{border-color:var(--color-bad)}
+.mq-campanas button[aria-pressed="true"]{background:var(--color-bad);border-color:var(--color-bad);color:#fff}
+.mq-campanas button[aria-pressed="true"] span{color:#fff}
+.mq-campanas button:focus-visible{outline:3px solid rgba(218,41,28,.3);outline-offset:1px}
+#mq-prod tbody tr{cursor:pointer}
+#mq-prod tbody tr.on{outline:2px solid var(--color-bad);outline-offset:-2px}
 .mq-eje{display:inline-flex;align-self:flex-start;border:1px solid var(--color-border-line);border-radius:999px;padding:2px;gap:2px}
 .mq-eje button{font:inherit;font-size:var(--cds-font-size-caption);border:0;border-radius:999px;padding:4px 12px;background:none;color:var(--color-fg-muted);cursor:pointer}
 .mq-eje button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-panel)}
@@ -227,8 +245,8 @@ window.dash = (() => {
 <div class="mq">
   <header class="mq-head" id="encabezado">
     <div>
-      <h1 id="titulo">Monitoreo de calidad · Ventas</h1>
-      <p class="mq-take" id="conclusion">Venta válida en <b data-kpi data-source="resumen" data-field="pct_valida" data-where="asesor=Todos">—</b> de las <b data-kpi data-source="resumen" data-field="llamadas" data-where="asesor=Todos">—</b> llamadas monitoreadas. El criterio con menor cumplimiento es <b data-kpi data-source="resumen" data-field="falla_principal" data-where="asesor=Todos">—</b> (<b data-kpi data-source="resumen" data-field="falla_cumple" data-where="asesor=Todos">—</b>).</p>
+      <div class="mq-marca"><span id="mq-logo" class="mq-logo"></span><h1 id="titulo">Monitoreo de calidad · Ventas</h1></div>
+      <p class="mq-take" id="conclusion">Venta válida en <b data-kpi data-source="resumen" data-field="pct_valida" data-where="campana=Todos&amp;asesor=Todos">—</b> de las <b data-kpi data-source="resumen" data-field="llamadas" data-where="campana=Todos&amp;asesor=Todos">—</b> llamadas monitoreadas. El criterio con menor cumplimiento es <b data-kpi data-source="resumen" data-field="falla_principal" data-where="campana=Todos&amp;asesor=Todos">—</b> (<b data-kpi data-source="resumen" data-field="falla_cumple" data-where="campana=Todos&amp;asesor=Todos">—</b>).</p>
     </div>
     <div class="mq-filter">
       <label for="mq-asesor">Asesor</label>
@@ -239,35 +257,37 @@ window.dash = (() => {
     </div>
   </header>
 
+  <nav class="mq-campanas" id="campanas" aria-label="Campaña" data-source="productos"></nav>
+
   <section class="mq-tiles" id="indicadores">
     <div class="mq-tile">
       <span class="mq-label">Llamadas monitoreadas</span>
-      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="llamadas" data-where="asesor=Todos">—</b>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="llamadas" data-where="campana=Todos&amp;asesor=Todos">—</b>
       <span class="mq-sub">Evaluación más reciente de cada llamada</span>
     </div>
     <div class="mq-tile">
       <span class="mq-label">Venta válida / correcta</span>
-      <b class="mq-big dash-skeleton" id="kpi-valida" data-kpi data-source="resumen" data-field="pct_valida" data-where="asesor=Todos">—</b>
-      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="validas" data-where="asesor=Todos">—</span> ventas válidas · meta 90%</span>
+      <b class="mq-big dash-skeleton" id="kpi-valida" data-kpi data-source="resumen" data-field="pct_valida" data-where="campana=Todos&amp;asesor=Todos">—</b>
+      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="validas" data-where="campana=Todos&amp;asesor=Todos">—</span> ventas válidas · meta 90%</span>
     </div>
     <div class="mq-tile">
       <span class="mq-label">Con error crítico</span>
-      <b class="mq-big dash-skeleton" id="kpi-error" data-kpi data-source="resumen" data-field="pct_error" data-where="asesor=Todos">—</b>
-      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="errores" data-where="asesor=Todos">—</span> llamadas con error crítico</span>
+      <b class="mq-big dash-skeleton" id="kpi-error" data-kpi data-source="resumen" data-field="pct_error" data-where="campana=Todos&amp;asesor=Todos">—</b>
+      <span class="mq-sub"><span data-kpi data-source="resumen" data-field="errores" data-where="campana=Todos&amp;asesor=Todos">—</span> llamadas con error crítico</span>
     </div>
     <div class="mq-tile">
       <span class="mq-label">TMO promedio</span>
-      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="tmo_prom" data-where="asesor=Todos">—</b>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="tmo_prom" data-where="campana=Todos&amp;asesor=Todos">—</b>
       <span class="mq-sub">Minutos:segundos por llamada</span>
     </div>
     <div class="mq-tile">
       <span class="mq-label">Último monitoreo</span>
-      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="ultimo_monitoreo" data-where="asesor=Todos">—</b>
-      <span class="mq-sub">Llamada más reciente: <span data-kpi data-source="resumen" data-field="ultima" data-where="asesor=Todos">—</span></span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="ultimo_monitoreo" data-where="campana=Todos&amp;asesor=Todos">—</b>
+      <span class="mq-sub">Llamada más reciente: <span data-kpi data-source="resumen" data-field="ultima" data-where="campana=Todos&amp;asesor=Todos">—</span></span>
     </div>
     <div class="mq-tile">
       <span class="mq-label">Días de llamada a monitoreo</span>
-      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="dias_prom" data-where="asesor=Todos">—</b>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="dias_prom" data-where="campana=Todos&amp;asesor=Todos">—</b>
       <span class="mq-sub">Promedio entre la fecha de la llamada y su monitoreo</span>
     </div>
   </section>
@@ -295,7 +315,7 @@ window.dash = (() => {
       <h2>Ranking por asesor</h2>
       <p class="mq-note">Haz clic en un asesor para filtrar todo el tablero. Ordena con los encabezados.</p>
       <div class="mq-scroll">
-        <table class="mq-rank" id="mq-rank" data-source="resumen" data-row-key="asesor">
+        <table class="mq-rank" id="mq-rank" data-source="resumen" data-row-key="campana,asesor">
           <thead><tr>
             <th data-field="asesor"><button data-sort="asesor">Asesor</button></th>
             <th class="num" data-field="llamadas"><button data-sort="llamadas">Llamadas</button></th>
@@ -437,9 +457,9 @@ dash.calc('resumen', {
   description: 'Llamadas, % de venta válida, errores críticos, TMO promedio y criterio más débil, por asesor y en total ("Todos").',
   fn: (evals) => {
     const criterios = [['info_producto', 'Información de producto'], ['datos_cliente', 'Solicitud de datos del cliente'], ['contrato', 'Contrato según plan y promociones'], ['facturacion', 'Facturación'], ['costos_envio', 'Costos de envíos y productos'], ['permin', 'Permanencia mínima (PERMIN)']];
-    const grupos = new Map([['Todos', evals]]);
-    for (const e of evals) { if (!grupos.has(e.asesor)) grupos.set(e.asesor, []); grupos.get(e.asesor).push(e); }
-    return [...grupos].map(([asesor, rs]) => {
+    const grupos = new Map();
+    for (const e of evals) for (const campana of ['Todos', e.producto]) for (const asesor of ['Todos', e.asesor]) { const k = campana + '|' + asesor; if (!grupos.has(k)) grupos.set(k, { campana, asesor, rs: [] }); grupos.get(k).rs.push(e); }
+    return [...grupos.values()].map(({ campana, asesor, rs }) => {
       const validas = rs.filter((e) => e.venta_valida === 'Sí').length;
       const errores = rs.filter((e) => e.error_critico === 'Sí').length;
       const tiempos = rs.map((e) => e.tmo_seg).filter((v) => v != null);
@@ -450,7 +470,7 @@ dash.calc('resumen', {
         if (no > 0 && (!peor || si / (si + no) < peor.p)) peor = { nombre, p: si / (si + no) };
       }
       return {
-        asesor, llamadas: rs.length, validas, pct_valida: rs.length ? validas / rs.length : null,
+        campana, asesor, llamadas: rs.length, validas, pct_valida: rs.length ? validas / rs.length : null,
         errores, pct_error: rs.length ? errores / rs.length : null, tmo_seg: tmo,
         tmo_prom: tmo == null ? '' : `${Math.floor(tmo / 60)}:${String(tmo % 60).padStart(2, '0')}`,
         falla_principal: peor ? peor.nombre : 'Sin fallas', falla_cumple: peor ? peor.p : 1,
@@ -468,13 +488,13 @@ dash.calc('criterios', {
   description: 'Sí, No y No aplica por criterio de la ficha; cumplimiento = Sí / (Sí + No). Por asesor y en total.',
   fn: (evals) => {
     const criterios = [['info_producto', 'Información de producto'], ['datos_cliente', 'Solicitud de datos del cliente'], ['contrato', 'Contrato según plan y promociones'], ['facturacion', 'Facturación'], ['costos_envio', 'Costos de envíos y productos'], ['permin', 'Permanencia mínima (PERMIN)']];
-    const grupos = new Map([['Todos', evals]]);
-    for (const e of evals) { if (!grupos.has(e.asesor)) grupos.set(e.asesor, []); grupos.get(e.asesor).push(e); }
+    const grupos = new Map();
+    for (const e of evals) for (const campana of ['Todos', e.producto]) for (const asesor of ['Todos', e.asesor]) { const k = campana + '|' + asesor; if (!grupos.has(k)) grupos.set(k, { campana, asesor, rs: [] }); grupos.get(k).rs.push(e); }
     const filas = [];
-    for (const [asesor, rs] of grupos) {
+    for (const { campana, asesor, rs } of grupos.values()) {
       for (const [k, criterio] of criterios) {
         const si = rs.filter((e) => e[k] === 'Sí').length, no = rs.filter((e) => e[k] === 'No').length;
-        filas.push({ asesor, criterio, si, no, no_aplica: rs.length - si - no, cumple: si + no ? si / (si + no) : null });
+        filas.push({ campana, asesor, criterio, si, no, no_aplica: rs.length - si - no, cumple: si + no ? si / (si + no) : null });
       }
     }
     return filas;
@@ -489,10 +509,12 @@ dash.calc('tendencia', {
     const m = new Map();
     for (const e of evals) {
       for (const [eje, fecha] of [['monitoreo', e.fecha_monitoreo], ['llamada', e.fecha]]) {
-        for (const asesor of ['Todos', e.asesor]) {
-          const k = eje + '|' + asesor + '|' + fecha;
-          if (!m.has(k)) m.set(k, { eje, asesor, fecha, llamadas: 0, validas: 0, no_validas: 0 });
-          const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++; else r.no_validas++;
+        for (const campana of ['Todos', e.producto]) {
+          for (const asesor of ['Todos', e.asesor]) {
+            const k = eje + '|' + campana + '|' + asesor + '|' + fecha;
+            if (!m.has(k)) m.set(k, { eje, campana, asesor, fecha, llamadas: 0, validas: 0, no_validas: 0 });
+            const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++; else r.no_validas++;
+          }
         }
       }
     }
@@ -563,6 +585,7 @@ dash.calc('calidad_base', {
   const pct = d3.format('.0%');
   const num = d3.format(',');
   const enc = (s) => String(s).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D');
+  const clave2 = (a, b) => [a, b].map((v) => enc(v).replace(/,/g, '%2C')).join(',');
   const dm = (s) => { if (!s) return ''; const [, m, d] = s.split('-'); return `${d}/${m}`; };
   const fmt = { pct_valida: pct, pct_error: pct, falla_cumple: pct, llamadas: num, validas: num, errores: num, ultima: dm, ultimo_monitoreo: dm, dias_prom: d3.format('.1f') };
   const eje = () => (dash.params().eje === 'llamada' ? 'llamada' : 'monitoreo');
@@ -585,8 +608,8 @@ dash.calc('calidad_base', {
       draw();
       return;
     }
-    const tr = ev.target.closest('tr[data-key]');
-    if (tr) elegir(tr.dataset.key === actual() ? 'Todos' : tr.dataset.key);
+    const tr = ev.target.closest('tr[data-asesor]');
+    if (tr) elegir(tr.dataset.asesor === actual() ? 'Todos' : tr.dataset.asesor);
   });
 
   const fallo = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'mq-fail'; d.textContent = 'Failed to load'; el.append(d); };
@@ -595,14 +618,46 @@ dash.calc('calidad_base', {
   const chip = (v, malo) => { const c = document.createElement('td'); const s = document.createElement('span'); s.className = 'mq-chip ' + (v === malo ? 'mq-bad' : 'mq-ok'); s.textContent = v; c.append(s); return c; };
   const tono = (el, v, bien, regular, alto) => { el.classList.remove('mq-ok', 'mq-warn', 'mq-bad'); if (v == null) return; const ok = alto ? v >= bien : v <= bien; const reg = alto ? v >= regular : v <= regular; el.classList.add(ok ? 'mq-ok' : reg ? 'mq-warn' : 'mq-bad'); };
 
+  let campana = 'Todos';
+
+  function drawCampanas(todas) {
+    const nav = document.getElementById('campanas');
+    const P = dash.data('productos');
+    if (P.status !== 'ok') { nav.replaceChildren(); return; }
+    const filas = P.data.filter((r) => r.asesor === 'Todos').sort((p, q) => q.llamadas - p.llamadas);
+    const total = todas ? todas.llamadas : d3.sum(filas, (r) => r.llamadas);
+    const boton = (valor, texto, n) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.campana = valor; b.setAttribute('aria-pressed', String(valor === campana));
+      const s = document.createElement('span'); s.textContent = num(n);
+      b.append(texto, s);
+      return b;
+    };
+    nav.replaceChildren(boton('Todos', 'Todas las campañas', total), ...filas.map((r) => boton(r.producto, r.producto, r.llamadas)));
+  }
+
+  document.getElementById('campanas').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-campana]');
+    if (b) dash.setParams({ campana: b.dataset.campana });
+  });
+  document.querySelector('#mq-prod tbody').addEventListener('click', (ev) => {
+    const tr = ev.target.closest('tr[data-producto]');
+    if (tr) dash.setParams({ campana: tr.dataset.producto === campana ? 'Todos' : tr.dataset.producto });
+  });
+
   function draw() {
     const a = actual();
     const R = dash.data('resumen');
-    const rows = R.status === 'ok' ? R.data : [];
+    const todos = R.status === 'ok' ? R.data : [];
+    const pedida = dash.params().campana || 'Todos';
+    campana = todos.some((r) => r.campana === pedida) ? pedida : 'Todos';
+    const rows = todos.filter((r) => r.campana === campana);
     const fila = rows.find((r) => r.asesor === a) || rows.find((r) => r.asesor === 'Todos');
     const asesor = fila ? fila.asesor : 'Todos';
     limpiar.hidden = asesor === 'Todos';
-    document.getElementById('titulo').textContent = asesor === 'Todos' ? 'Monitoreo de calidad · Ventas' : 'Monitoreo de calidad · ' + asesor;
+    const partes = [campana === 'Todos' ? 'Ventas' : campana, asesor === 'Todos' ? '' : asesor].filter(Boolean);
+    document.getElementById('titulo').textContent = 'Monitoreo de calidad · ' + partes.join(' · ');
+    drawCampanas(todos.find((r) => r.campana === 'Todos' && r.asesor === 'Todos'));
 
     // Selector
     const nombres = rows.filter((r) => r.asesor !== 'Todos').map((r) => r.asesor).sort();
@@ -611,7 +666,7 @@ dash.calc('calidad_base', {
 
     // Indicadores
     document.querySelectorAll('[data-kpi]').forEach((el) => {
-      el.setAttribute('data-where', 'asesor=' + enc(asesor));
+      el.setAttribute('data-where', 'campana=' + enc(campana) + '&asesor=' + enc(asesor));
       if (R.status !== 'ok' || !fila) { el.textContent = '—'; if (R.status !== 'loading') el.classList.remove('dash-skeleton'); return; }
       el.classList.remove('dash-skeleton');
       const v = fila[el.dataset.field];
@@ -640,7 +695,7 @@ dash.calc('calidad_base', {
     if (D.status === 'loading') return;
     box.classList.remove('dash-skeleton');
     if (D.status !== 'ok') return fallo(box);
-    const data = D.data.filter((r) => r.asesor === asesor && r.eje === e).sort((x, y) => (x.fecha < y.fecha ? -1 : 1));
+    const data = D.data.filter((r) => r.campana === campana && r.asesor === asesor && r.eje === e).sort((x, y) => (x.fecha < y.fecha ? -1 : 1));
     if (!data.length) return vacio(box, 'Sin llamadas para este asesor.');
     box.replaceChildren();
     const w = Math.max(280, box.clientWidth || 600), h = 230, m = { t: 12, r: 8, b: 26, l: 30 };
@@ -678,7 +733,7 @@ dash.calc('calidad_base', {
     if (D.status === 'loading') return;
     box.classList.remove('dash-skeleton');
     if (D.status !== 'ok') return fallo(box);
-    const data = D.data.filter((r) => r.asesor === asesor);
+    const data = D.data.filter((r) => r.campana === campana && r.asesor === asesor);
     box.replaceChildren();
     for (const r of data) {
       const row = document.createElement('div'); row.className = 'mq-crow';
@@ -703,7 +758,7 @@ dash.calc('calidad_base', {
     data.sort((p, q) => { const a = p[campo], b = q[campo]; if (a == null) return 1; if (b == null) return -1; return (typeof a === 'string' ? a.localeCompare(b) : a - b) * dir; });
     document.querySelectorAll('#mq-rank th').forEach((th) => { const b = th.querySelector('button'); th.setAttribute('aria-sort', b.dataset.sort === campo ? (dir > 0 ? 'ascending' : 'descending') : 'none'); });
     for (const r of data) {
-      const tr = document.createElement('tr'); tr.dataset.key = r.asesor; if (r.asesor === asesor) tr.className = 'on';
+      const tr = document.createElement('tr'); tr.dataset.key = clave2(r.campana, r.asesor); tr.dataset.asesor = r.asesor; if (r.asesor === asesor) tr.className = 'on';
       const pv = document.createElement('td'); pv.className = 'num';
       const cb = document.createElement('span'); cb.className = 'mq-cellbar';
       const bar = document.createElement('i'); bar.style.width = Math.round((r.pct_valida || 0) * 48) + 'px'; bar.style.background = r.pct_valida < 0.75 ? 'var(--cds-chart-status-critical)' : dash.colors[0];
@@ -721,7 +776,7 @@ dash.calc('calidad_base', {
     const D = dash.data('productos');
     if (D.status !== 'ok') return;
     for (const r of D.data.filter((x) => x.asesor === asesor).sort((p, q) => q.llamadas - p.llamadas)) {
-      const tr = document.createElement('tr'); tr.dataset.key = enc(r.asesor).replace(/,/g, '%2C') + ',' + enc(r.producto).replace(/,/g, '%2C');
+      const tr = document.createElement('tr'); tr.dataset.key = clave2(r.asesor, r.producto); tr.dataset.producto = r.producto; if (r.producto === campana) tr.className = 'on';
       tr.append(td(r.producto), td(num(r.llamadas), 'num'), td(num(r.validas), 'num'), td(pct(r.pct_valida), 'num'));
       tb.append(tr);
     }
@@ -733,7 +788,7 @@ dash.calc('calidad_base', {
     const D = dash.data('evals');
     if (D.status !== 'ok') return;
     const q = buscar.value.trim().toLowerCase();
-    const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (!q || [r.asesor, r.producto, r.plan, r.observaciones].join(' ').toLowerCase().includes(q)));
+    const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (campana === 'Todos' || r.producto === campana) && (!q || [r.asesor, r.producto, r.plan, r.observaciones].join(' ').toLowerCase().includes(q)));
     for (const r of data) {
       const tr = document.createElement('tr'); tr.dataset.key = r.clave;
       tr.append(td(r.fecha_monitoreo), td(r.fecha), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));

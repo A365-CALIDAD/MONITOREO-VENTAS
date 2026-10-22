@@ -11,6 +11,12 @@ Dashboard estático para el seguimiento del monitoreo de calidad de ventas de Cl
 
 Cada llamada (fecha + teléfono) se cuenta una sola vez, con su evaluación más reciente.
 
+La botonera de campañas (Migración, Portabilidad, Renovación, Línea nueva, según la columna PRODUCTO) filtra todo el tablero; también se puede elegir la campaña con un clic en la tabla "Resultado por producto".
+
+## Logo
+
+Coloca el logo oficial como `logo-claro.png` en la raíz del repositorio (junto a `index.html`) y aparecerá a la izquierda del título. Si el archivo no existe, el encabezado se muestra sin logo. Para usar otro nombre o formato, cambia la constante `LOGO` en `index.html`.
+
 ## Fuente de datos
 
 `index.html` lee en el navegador la hoja de Google Sheets definida en las constantes `SHEET_ID` y `GID`, exportada como CSV, y se actualiza cada `REFRESCO_MIN` minutos o con el botón **Actualizar**. La hoja debe estar compartida como "cualquier persona con el enlace puede ver". Si no lo está, se puede usar **Cargar CSV** con un archivo descargado de la hoja.
