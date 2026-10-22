@@ -140,6 +140,10 @@ window.dash = (() => {
 .mq-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
 .mq-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0;line-height:1.45}
 .mq-chart{min-height:230px;position:relative}
+.mq-eje{display:inline-flex;align-self:flex-start;border:1px solid var(--color-border-line);border-radius:999px;padding:2px;gap:2px}
+.mq-eje button{font:inherit;font-size:var(--cds-font-size-caption);border:0;border-radius:999px;padding:4px 12px;background:none;color:var(--color-fg-muted);cursor:pointer}
+.mq-eje button[aria-pressed="true"]{background:var(--color-fg);color:var(--color-panel)}
+.mq-eje button:focus-visible{outline:2px solid var(--color-bad);outline-offset:1px}
 .mq-legend{display:flex;gap:var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
 .mq-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .mq-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap;z-index:2}
@@ -257,16 +261,25 @@ window.dash = (() => {
       <span class="mq-sub">Minutos:segundos por llamada</span>
     </div>
     <div class="mq-tile">
-      <span class="mq-label">Última llamada monitoreada</span>
-      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="ultima" data-where="asesor=Todos">—</b>
-      <span class="mq-sub">Fecha de la llamada (día/mes)</span>
+      <span class="mq-label">Último monitoreo</span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="ultimo_monitoreo" data-where="asesor=Todos">—</b>
+      <span class="mq-sub">Llamada más reciente: <span data-kpi data-source="resumen" data-field="ultima" data-where="asesor=Todos">—</span></span>
+    </div>
+    <div class="mq-tile">
+      <span class="mq-label">Días de llamada a monitoreo</span>
+      <b class="mq-big dash-skeleton" data-kpi data-source="resumen" data-field="dias_prom" data-where="asesor=Todos">—</b>
+      <span class="mq-sub">Promedio entre la fecha de la llamada y su monitoreo</span>
     </div>
   </section>
 
   <section class="mq-grid">
     <div class="mq-card" id="tendencia-card">
       <h2>Llamadas monitoreadas por día</h2>
-      <p class="mq-note">Por fecha de la llamada, separadas según el resultado de la venta.</p>
+      <div class="mq-eje" role="group" aria-label="Agrupar por">
+        <button type="button" data-eje="monitoreo">Fecha de monitoreo</button>
+        <button type="button" data-eje="llamada">Fecha de llamada</button>
+      </div>
+      <p class="mq-note" id="mq-trend-nota">Por fecha de monitoreo, separadas según el resultado de la venta.</p>
       <div class="mq-legend"><span><i id="sw-valida"></i>Venta válida</span><span><i style="background:var(--cds-chart-status-critical)"></i>No válida</span></div>
       <div class="mq-chart dash-skeleton" id="mq-trend" data-source="tendencia"></div>
     </div>
@@ -314,12 +327,13 @@ window.dash = (() => {
 
   <div class="mq-card" id="detalle-card">
     <h2>Detalle de llamadas evaluadas</h2>
-    <p class="mq-note">Busca por asesor, producto, plan u observación. Las llamadas con error crítico aparecen primero dentro de cada fecha.</p>
+    <p class="mq-note">Busca por asesor, producto, plan u observación. Ordenado por fecha de monitoreo, con las llamadas con error crítico primero dentro de cada día.</p>
     <input class="mq-search" id="mq-buscar" type="search" placeholder="Buscar…" aria-label="Buscar en el detalle">
     <div class="mq-scroll">
       <table id="mq-det" data-source="evals" data-row-key="clave">
         <thead><tr>
-          <th data-field="fecha">Fecha</th>
+          <th data-field="fecha_monitoreo">Monitoreo</th>
+          <th data-field="fecha">Llamada</th>
           <th data-field="asesor">Asesor</th>
           <th data-field="producto">Producto</th>
           <th class="num" data-field="tmo">TMO</th>
@@ -397,8 +411,10 @@ dash.calc('evals', {
       const clave = `${dia}|${tel || t(r.id_llamada)}`;
       const evaluado = `${ev.y}-${p2(ev.mo)}-${p2(ev.d)} ${p2(ev.h)}:${p2(ev.mi)}:${p2(ev.s)}`;
       const seg = tmoSeg(r.tmo);
+      const fecha_monitoreo = evaluado.slice(0, 10);
+      const dias = Math.round((Date.parse(fecha_monitoreo) - Date.parse(dia)) / 864e5);
       const fila = {
-        clave, fecha: dia, evaluado, asesor: nombre(r.asesor), id_llamada: t(r.id_llamada),
+        clave, fecha: dia, fecha_monitoreo, dias, evaluado, asesor: nombre(r.asesor), id_llamada: t(r.id_llamada),
         producto: t(r.producto), plan: t(r.plan), tmo_seg: seg, tmo: seg == null ? '' : `${Math.floor(seg / 60)}:${p2(seg % 60)}`,
         info_producto: t(r.info_producto), datos_cliente: t(r.datos_cliente), contrato: t(r.contrato), facturacion: t(r.facturacion),
         costos_envio: t(r.costos_envio), permin: t(r.permin), error_critico: t(r.error_critico), venta_valida: t(r.venta_valida),
@@ -411,7 +427,7 @@ dash.calc('evals', {
       }
       out.set(clave, fila);
     }
-    return [...out.values()].sort((a, b) => (a.fecha !== b.fecha ? (a.fecha < b.fecha ? 1 : -1) : (a.error_critico === b.error_critico ? 0 : a.error_critico === 'Sí' ? -1 : 1)));
+    return [...out.values()].sort((a, b) => (a.fecha_monitoreo !== b.fecha_monitoreo ? (a.fecha_monitoreo < b.fecha_monitoreo ? 1 : -1) : (a.error_critico === b.error_critico ? (a.evaluado < b.evaluado ? 1 : -1) : a.error_critico === 'Sí' ? -1 : 1)));
   },
 });
 
@@ -439,6 +455,8 @@ dash.calc('resumen', {
         tmo_prom: tmo == null ? '' : `${Math.floor(tmo / 60)}:${String(tmo % 60).padStart(2, '0')}`,
         falla_principal: peor ? peor.nombre : 'Sin fallas', falla_cumple: peor ? peor.p : 1,
         ultima: rs.reduce((m, e) => (e.fecha > m ? e.fecha : m), ''),
+        ultimo_monitoreo: rs.reduce((m, e) => (e.fecha_monitoreo > m ? e.fecha_monitoreo : m), ''),
+        dias_prom: rs.length ? Math.round(rs.reduce((a, e) => a + e.dias, 0) / rs.length * 10) / 10 : null,
       };
     });
   },
@@ -466,14 +484,16 @@ dash.calc('criterios', {
 dash.calc('tendencia', {
   inputs: ['evals'],
   title: 'Llamadas por día',
-  description: 'Llamadas monitoreadas por fecha de llamada, válidas y no válidas, por asesor y en total.',
+  description: 'Llamadas monitoreadas por día, válidas y no válidas, según la fecha de monitoreo (Timestamp) o la fecha de la llamada (FECHA), por asesor y en total.',
   fn: (evals) => {
     const m = new Map();
     for (const e of evals) {
-      for (const asesor of ['Todos', e.asesor]) {
-        const k = asesor + '|' + e.fecha;
-        if (!m.has(k)) m.set(k, { asesor, fecha: e.fecha, llamadas: 0, validas: 0, no_validas: 0 });
-        const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++; else r.no_validas++;
+      for (const [eje, fecha] of [['monitoreo', e.fecha_monitoreo], ['llamada', e.fecha]]) {
+        for (const asesor of ['Todos', e.asesor]) {
+          const k = eje + '|' + asesor + '|' + fecha;
+          if (!m.has(k)) m.set(k, { eje, asesor, fecha, llamadas: 0, validas: 0, no_validas: 0 });
+          const r = m.get(k); r.llamadas++; if (e.venta_valida === 'Sí') r.validas++; else r.no_validas++;
+        }
       }
     }
     return [...m.values()];
@@ -504,10 +524,11 @@ dash.calc('calidad_base', {
   fn: (monitoreo) => {
     const dia = (s) => (s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     const claves = new Map();
-    let tmoHoras = 0, anio = 0, tel = 0, idEsp = 0, nombres = 0, incoh = 0, sinObs = 0;
+    let tmoHoras = 0, anio = 0, antes = 0, tel = 0, idEsp = 0, nombres = 0, incoh = 0, sinObs = 0;
     for (const r of monitoreo) {
       const f = dia(r.fecha), ev = dia(r.marca_temporal);
       if (f && ev && f[3] !== ev[3]) anio++;
+      if (f && ev && Date.UTC(+ev[3], +f[1] - 1, +f[2]) > Date.UTC(+ev[3], +ev[1] - 1, +ev[2])) antes++;
       const k = (f ? f[1] + '/' + f[2] : '') + '|' + (r.telefono || '').replace(/\D/g, '').replace(/^0+/, '');
       claves.set(k, (claves.get(k) || 0) + 1);
       const p = (r.tmo || '').trim().split(':');
@@ -525,7 +546,8 @@ dash.calc('calidad_base', {
     return [
       { problema: 'Llamadas evaluadas más de una vez', cantidad: dup, detalle: 'Misma fecha y teléfono registrados varias veces. Se cuenta solo la evaluación más reciente.' },
       { problema: 'TMO cargado como horas', cantidad: tmoHoras, detalle: 'Ej. 16:59:00 en vez de 0:16:59. Se lee como minutos:segundos. Corregir el formato en el formulario.' },
-      { problema: 'Fecha de llamada con año distinto', cantidad: anio, detalle: 'El año no coincide con la fecha de registro (ej. 2025). Se usa el año del registro.' },
+      { problema: 'Fecha de llamada con año distinto', cantidad: anio, detalle: 'El año de FECHA (llamada) no coincide con el del Timestamp (monitoreo), ej. 2025. Se usa el año del monitoreo.' },
+      { problema: 'Llamada con fecha posterior al monitoreo', cantidad: antes, detalle: 'La FECHA de la llamada es posterior al Timestamp del monitoreo. Revisar la fecha digitada.' },
       { problema: 'Teléfono sin 10 dígitos', cantidad: tel, detalle: 'Números sin el 0 inicial u otra longitud. Validar el campo en el formulario.' },
       { problema: 'ID de llamada con espacios', cantidad: idEsp, detalle: 'Espacios al inicio o al final del ID. Se recortan.' },
       { problema: 'Nombre de asesor con variantes', cantidad: nombres, detalle: 'Espacios dobles o errores de escritura (ONTOYA / MONTOYA). Se normalizan; conviene usar una lista desplegable.' },
@@ -542,7 +564,9 @@ dash.calc('calidad_base', {
   const num = d3.format(',');
   const enc = (s) => String(s).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D');
   const dm = (s) => { if (!s) return ''; const [, m, d] = s.split('-'); return `${d}/${m}`; };
-  const fmt = { pct_valida: pct, pct_error: pct, falla_cumple: pct, llamadas: num, validas: num, errores: num, ultima: dm };
+  const fmt = { pct_valida: pct, pct_error: pct, falla_cumple: pct, llamadas: num, validas: num, errores: num, ultima: dm, ultimo_monitoreo: dm, dias_prom: d3.format('.1f') };
+  const eje = () => (dash.params().eje === 'llamada' ? 'llamada' : 'monitoreo');
+  document.querySelectorAll('[data-eje]').forEach((b) => b.addEventListener('click', () => dash.setParams({ eje: b.dataset.eje })));
   const sel = document.getElementById('mq-asesor');
   const limpiar = document.getElementById('mq-limpiar');
   const buscar = document.getElementById('mq-buscar');
@@ -608,10 +632,15 @@ dash.calc('calidad_base', {
     const box = document.getElementById('mq-trend');
     const D = dash.data('tendencia');
     document.getElementById('sw-valida').style.background = dash.colors[0];
+    const e = eje();
+    document.querySelectorAll('[data-eje]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.eje === e)));
+    document.getElementById('mq-trend-nota').textContent = e === 'monitoreo'
+      ? 'Por fecha de monitoreo (Timestamp del formulario), separadas según el resultado de la venta.'
+      : 'Por fecha de la llamada (columna FECHA), separadas según el resultado de la venta.';
     if (D.status === 'loading') return;
     box.classList.remove('dash-skeleton');
     if (D.status !== 'ok') return fallo(box);
-    const data = D.data.filter((r) => r.asesor === asesor).sort((x, y) => (x.fecha < y.fecha ? -1 : 1));
+    const data = D.data.filter((r) => r.asesor === asesor && r.eje === e).sort((x, y) => (x.fecha < y.fecha ? -1 : 1));
     if (!data.length) return vacio(box, 'Sin llamadas para este asesor.');
     box.replaceChildren();
     const w = Math.max(280, box.clientWidth || 600), h = 230, m = { t: 12, r: 8, b: 26, l: 30 };
@@ -707,7 +736,7 @@ dash.calc('calidad_base', {
     const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (!q || [r.asesor, r.producto, r.plan, r.observaciones].join(' ').toLowerCase().includes(q)));
     for (const r of data) {
       const tr = document.createElement('tr'); tr.dataset.key = r.clave;
-      tr.append(td(r.fecha), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));
+      tr.append(td(r.fecha_monitoreo), td(r.fecha), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));
       tb.append(tr);
     }
   }
