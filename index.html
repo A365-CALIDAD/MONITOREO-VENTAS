@@ -146,6 +146,21 @@ window.dash = (() => {
 .mq-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
 .mq-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0;line-height:1.45}
 .mq-chart{min-height:230px;position:relative}
+.mq-tablas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:var(--cds-gap-md)}
+.mq-abrir{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:16px 18px;background:var(--color-panel);border:1px solid var(--color-border-line);border-left:4px solid var(--color-bad);border-radius:var(--cds-radius);color:var(--color-fg);cursor:pointer}
+.mq-abrir b{font-size:var(--cds-font-size-heading);font-weight:700}
+.mq-abrir span{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mq-abrir b::after{content:" →";color:var(--color-bad)}
+.mq-abrir:hover{border-color:var(--color-bad)}
+.mq-abrir:focus-visible,.mq-cerrar:focus-visible{outline:3px solid rgba(218,41,28,.3);outline-offset:2px}
+.mq-modal{width:min(1100px,calc(100vw - 32px));max-height:calc(100vh - 48px);padding:0;border:0;border-radius:12px;background:var(--color-panel);color:var(--color-fg);box-shadow:0 20px 60px rgba(22,32,46,.3);overflow:hidden}
+.mq-modal[open]{display:flex;flex-direction:column}
+.mq-modal::backdrop{background:rgba(22,32,46,.55)}
+.mq-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:3px solid var(--color-bad)}
+.mq-modal-head h2{margin:0;font-size:var(--cds-font-size-heading);font-weight:700}
+.mq-cerrar{font:inherit;font-size:24px;line-height:1;width:36px;height:36px;border-radius:50%;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);cursor:pointer}
+.mq-modal-body{display:flex;flex-direction:column;gap:var(--cds-gap-sm);padding:16px 20px 20px;min-height:0;overflow:hidden}
+.mq-modal-body .mq-scroll{max-height:none;flex:1;min-height:0}
 .mq-marca{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .mq-logo:empty{display:none}
 .mq-logo img{display:block;height:44px;width:auto;max-width:160px}
@@ -184,6 +199,11 @@ window.dash = (() => {
 .mq-cellbar{display:flex;align-items:center;gap:6px;justify-content:flex-end}
 .mq-cellbar i{display:inline-block;height:6px;border-radius:3px;background:var(--cds-chart-muted)}
 .mq-chip{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:600;border:1px solid currentColor}
+.mq-id{font-family:Consolas,"Courier New",monospace;font-size:11px;white-space:nowrap;cursor:pointer;color:var(--color-fg);position:relative}
+.mq-id::after{content:"⧉";margin-left:6px;color:var(--color-fg-muted)}
+.mq-id:hover{text-decoration:underline}
+.mq-id:focus-visible{outline:2px solid var(--color-bad);outline-offset:-2px}
+.mq-id.copiado::after{content:"Copiado";font-family:var(--font-anthropic-sans);font-size:11px;color:var(--color-ok)}
 .mq-obs{white-space:pre-line;min-width:18rem;max-width:42rem;color:var(--color-fg-muted)}
 .mq-search{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;max-width:22rem;width:100%}
 .mq-fail{display:flex;align-items:center;justify-content:center;gap:8px;min-height:inherit;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
@@ -310,76 +330,103 @@ window.dash = (() => {
     </div>
   </section>
 
-  <section class="mq-grid">
-    <div class="mq-card" id="ranking-card">
-      <h2>Ranking por asesor</h2>
-      <p class="mq-note">Haz clic en un asesor para filtrar todo el tablero. Ordena con los encabezados.</p>
-      <div class="mq-scroll">
-        <table class="mq-rank" id="mq-rank" data-source="resumen" data-row-key="campana,asesor">
-          <thead><tr>
-            <th data-field="asesor"><button data-sort="asesor">Asesor</button></th>
-            <th class="num" data-field="llamadas"><button data-sort="llamadas">Llamadas</button></th>
-            <th class="num" data-field="pct_valida"><button data-sort="pct_valida">% válida</button></th>
-            <th class="num" data-field="errores"><button data-sort="errores">Errores críticos</button></th>
-            <th class="num" data-field="tmo_prom"><button data-sort="tmo_seg">TMO</button></th>
-            <th data-field="falla_principal"><button data-sort="falla_principal">Criterio a reforzar</button></th>
-          </tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="mq-card" id="producto-card">
-      <h2>Resultado por producto</h2>
-      <p class="mq-note">Llamadas monitoreadas y porcentaje de venta válida por tipo de producto.</p>
-      <div class="mq-scroll">
-        <table id="mq-prod" data-source="productos" data-row-key="asesor,producto">
-          <thead><tr>
-            <th data-field="producto">Producto</th>
-            <th class="num" data-field="llamadas">Llamadas</th>
-            <th class="num" data-field="validas">Válidas</th>
-            <th class="num" data-field="pct_valida">% válida</th>
-          </tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+  <section class="mq-tablas" id="tablas" aria-label="Tablas">
+    <button type="button" class="mq-abrir" data-abre="modal-ranking"><b>Ranking por asesor</b><span>Llamadas, % válida, errores críticos y criterio a reforzar por asesor.</span></button>
+    <button type="button" class="mq-abrir" data-abre="modal-producto"><b>Resultado por producto</b><span>Llamadas y % de venta válida por campaña.</span></button>
+    <button type="button" class="mq-abrir" data-abre="modal-detalle"><b>Detalle de llamadas</b><span>Cada llamada evaluada con su ID para ubicar la grabación.</span></button>
+    <button type="button" class="mq-abrir" data-abre="modal-calidad"><b>Revisión de la base</b><span>Inconsistencias encontradas en el formulario.</span></button>
   </section>
 
-  <div class="mq-card" id="detalle-card">
-    <h2>Detalle de llamadas evaluadas</h2>
-    <p class="mq-note">Busca por asesor, producto, plan u observación. Ordenado por fecha de monitoreo, con las llamadas con error crítico primero dentro de cada día.</p>
-    <input class="mq-search" id="mq-buscar" type="search" placeholder="Buscar…" aria-label="Buscar en el detalle">
-    <div class="mq-scroll">
-      <table id="mq-det" data-source="evals" data-row-key="clave">
-        <thead><tr>
-          <th data-field="fecha_monitoreo">Monitoreo</th>
-          <th data-field="fecha">Llamada</th>
-          <th data-field="asesor">Asesor</th>
-          <th data-field="producto">Producto</th>
-          <th class="num" data-field="tmo">TMO</th>
-          <th data-field="venta_valida">Válida</th>
-          <th data-field="error_critico">Error crítico</th>
-          <th data-field="observaciones">Observaciones</th>
-        </tr></thead>
-        <tbody></tbody>
-      </table>
+  <dialog class="mq-modal" id="modal-ranking" aria-labelledby="titulo-ranking">
+    <div class="mq-modal-head">
+      <h2 id="titulo-ranking">Ranking por asesor</h2>
+      <button type="button" class="mq-cerrar" data-cierra aria-label="Cerrar">×</button>
     </div>
-  </div>
+    <div class="mq-modal-body" id="ranking-card">
+      <p class="mq-note">Haz clic en un asesor para filtrar todo el tablero. Ordena con los encabezados.</p>
+      <div class="mq-scroll">
+      <table class="mq-rank" id="mq-rank" data-source="resumen" data-row-key="campana,asesor">
+      <thead><tr>
+      <th data-field="asesor"><button data-sort="asesor">Asesor</button></th>
+      <th class="num" data-field="llamadas"><button data-sort="llamadas">Llamadas</button></th>
+      <th class="num" data-field="pct_valida"><button data-sort="pct_valida">% válida</button></th>
+      <th class="num" data-field="errores"><button data-sort="errores">Errores críticos</button></th>
+      <th class="num" data-field="tmo_prom"><button data-sort="tmo_seg">TMO</button></th>
+      <th data-field="falla_principal"><button data-sort="falla_principal">Criterio a reforzar</button></th>
+      </tr></thead>
+      <tbody></tbody>
+      </table>
+      </div>
+    </div>
+  </dialog>
 
-  <div class="mq-card" id="calidad-card">
-    <h2>Revisión de la base</h2>
-    <p class="mq-note">Inconsistencias encontradas en las respuestas del formulario. Corregirlas en origen mejora la precisión del seguimiento.</p>
-    <div class="mq-scroll">
-      <table id="mq-dq" data-source="calidad_base" data-row-key="problema">
-        <thead><tr>
-          <th data-field="problema">Hallazgo</th>
-          <th class="num" data-field="cantidad">Filas</th>
-          <th data-field="detalle">Qué hace el tablero / qué corregir</th>
-        </tr></thead>
-        <tbody></tbody>
-      </table>
+  <dialog class="mq-modal" id="modal-producto" aria-labelledby="titulo-producto">
+    <div class="mq-modal-head">
+      <h2 id="titulo-producto">Resultado por producto</h2>
+      <button type="button" class="mq-cerrar" data-cierra aria-label="Cerrar">×</button>
     </div>
-  </div>
+    <div class="mq-modal-body" id="producto-card">
+      <p class="mq-note">Llamadas monitoreadas y porcentaje de venta válida por tipo de producto.</p>
+      <div class="mq-scroll">
+      <table id="mq-prod" data-source="productos" data-row-key="asesor,producto">
+      <thead><tr>
+      <th data-field="producto">Producto</th>
+      <th class="num" data-field="llamadas">Llamadas</th>
+      <th class="num" data-field="validas">Válidas</th>
+      <th class="num" data-field="pct_valida">% válida</th>
+      </tr></thead>
+      <tbody></tbody>
+      </table>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="mq-modal" id="modal-detalle" aria-labelledby="titulo-detalle">
+    <div class="mq-modal-head">
+      <h2 id="titulo-detalle">Detalle de llamadas evaluadas</h2>
+      <button type="button" class="mq-cerrar" data-cierra aria-label="Cerrar">×</button>
+    </div>
+    <div class="mq-modal-body" id="detalle-card">
+      <p class="mq-note">Busca por asesor, producto, plan, ID de llamada u observación. Haz clic en un ID para copiarlo y ubicar la grabación. Ordenado por fecha de monitoreo, con las llamadas con error crítico primero dentro de cada día.</p>
+      <input class="mq-search" id="mq-buscar" type="search" placeholder="Buscar…" aria-label="Buscar en el detalle">
+      <div class="mq-scroll">
+      <table id="mq-det" data-source="evals" data-row-key="clave">
+      <thead><tr>
+      <th data-field="fecha_monitoreo">Monitoreo</th>
+      <th data-field="fecha">Llamada</th>
+      <th data-field="id_llamada">ID de llamada</th>
+      <th data-field="asesor">Asesor</th>
+      <th data-field="producto">Producto</th>
+      <th class="num" data-field="tmo">TMO</th>
+      <th data-field="venta_valida">Válida</th>
+      <th data-field="error_critico">Error crítico</th>
+      <th data-field="observaciones">Observaciones</th>
+      </tr></thead>
+      <tbody></tbody>
+      </table>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="mq-modal" id="modal-calidad" aria-labelledby="titulo-calidad">
+    <div class="mq-modal-head">
+      <h2 id="titulo-calidad">Revisión de la base</h2>
+      <button type="button" class="mq-cerrar" data-cierra aria-label="Cerrar">×</button>
+    </div>
+    <div class="mq-modal-body" id="calidad-card">
+      <p class="mq-note">Inconsistencias encontradas en las respuestas del formulario. Corregirlas en origen mejora la precisión del seguimiento.</p>
+      <div class="mq-scroll">
+      <table id="mq-dq" data-source="calidad_base" data-row-key="problema">
+      <thead><tr>
+      <th data-field="problema">Hallazgo</th>
+      <th class="num" data-field="cantidad">Filas</th>
+      <th data-field="detalle">Qué hace el tablero / qué corregir</th>
+      </tr></thead>
+      <tbody></tbody>
+      </table>
+      </div>
+    </div>
+  </dialog>
 </div>
 
 <script>
@@ -609,7 +656,7 @@ dash.calc('calidad_base', {
       return;
     }
     const tr = ev.target.closest('tr[data-asesor]');
-    if (tr) elegir(tr.dataset.asesor === actual() ? 'Todos' : tr.dataset.asesor);
+    if (tr) { const dlg = tr.closest('dialog'); elegir(tr.dataset.asesor === actual() ? 'Todos' : tr.dataset.asesor); cerrarModal(dlg); }
   });
 
   const fallo = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'mq-fail'; d.textContent = 'Failed to load'; el.append(d); };
@@ -617,6 +664,16 @@ dash.calc('calidad_base', {
   const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = txt; return c; };
   const chip = (v, malo) => { const c = document.createElement('td'); const s = document.createElement('span'); s.className = 'mq-chip ' + (v === malo ? 'mq-bad' : 'mq-ok'); s.textContent = v; c.append(s); return c; };
   const tono = (el, v, bien, regular, alto) => { el.classList.remove('mq-ok', 'mq-warn', 'mq-bad'); if (v == null) return; const ok = alto ? v >= bien : v <= bien; const reg = alto ? v >= regular : v <= regular; el.classList.add(ok ? 'mq-ok' : reg ? 'mq-warn' : 'mq-bad'); };
+
+  // Ventanas modales de las tablas
+  document.querySelectorAll('[data-abre]').forEach((b) => b.addEventListener('click', () => {
+    const d = document.getElementById(b.dataset.abre);
+    if (d && !d.open) d.showModal();
+  }));
+  document.querySelectorAll('.mq-modal').forEach((d) => {
+    d.addEventListener('click', (ev) => { if (ev.target === d || ev.target.closest('[data-cierra]')) d.close(); });
+  });
+  const cerrarModal = (d) => { if (d && d.open) d.close(); };
 
   let campana = 'Todos';
 
@@ -642,7 +699,7 @@ dash.calc('calidad_base', {
   });
   document.querySelector('#mq-prod tbody').addEventListener('click', (ev) => {
     const tr = ev.target.closest('tr[data-producto]');
-    if (tr) dash.setParams({ campana: tr.dataset.producto === campana ? 'Todos' : tr.dataset.producto });
+    if (tr) { const dlg = tr.closest('dialog'); dash.setParams({ campana: tr.dataset.producto === campana ? 'Todos' : tr.dataset.producto }); cerrarModal(dlg); }
   });
 
   function draw() {
@@ -782,16 +839,33 @@ dash.calc('calidad_base', {
     }
   }
 
+  const idCell = (id) => {
+    const c = td(id, 'mq-id');
+    c.tabIndex = 0;
+    c.setAttribute('role', 'button');
+    c.setAttribute('aria-label', 'Copiar ID de llamada ' + id);
+    return c;
+  };
+  const copiarId = async (c) => {
+    const id = c.textContent;
+    try { await navigator.clipboard.writeText(id); }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(c); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+    c.classList.add('copiado');
+    setTimeout(() => c.classList.remove('copiado'), 1400);
+  };
+  document.querySelector('#mq-det tbody').addEventListener('click', (ev) => { const c = ev.target.closest('td.mq-id'); if (c) copiarId(c); });
+  document.querySelector('#mq-det tbody').addEventListener('keydown', (ev) => { const c = ev.target.closest('td.mq-id'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); copiarId(c); } });
+
   function drawDet(asesor) {
     const tb = document.querySelector('#mq-det tbody');
     tb.replaceChildren();
     const D = dash.data('evals');
     if (D.status !== 'ok') return;
     const q = buscar.value.trim().toLowerCase();
-    const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (campana === 'Todos' || r.producto === campana) && (!q || [r.asesor, r.producto, r.plan, r.observaciones].join(' ').toLowerCase().includes(q)));
+    const data = D.data.filter((r) => (asesor === 'Todos' || r.asesor === asesor) && (campana === 'Todos' || r.producto === campana) && (!q || [r.asesor, r.producto, r.plan, r.id_llamada, r.observaciones].join(' ').toLowerCase().includes(q)));
     for (const r of data) {
       const tr = document.createElement('tr'); tr.dataset.key = r.clave;
-      tr.append(td(r.fecha_monitoreo), td(r.fecha), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));
+      tr.append(td(r.fecha_monitoreo), td(r.fecha), idCell(r.id_llamada), td(r.asesor), td(r.producto), td(r.tmo, 'num'), chip(r.venta_valida, 'No'), chip(r.error_critico, 'Sí'), td(r.observaciones, 'mq-obs'));
       tb.append(tr);
     }
   }
